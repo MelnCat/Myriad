@@ -1,0 +1,17 @@
+{
+	"id": "myriad",
+	"name": "Myriad",
+	"display_name": "Myriad",
+	"author": ["melncat"],
+	"description": "todo",
+	"prefix": "myriad",
+	"main_file": "index.lua",
+	"priority": 0,
+	"badge_colour": "612C8B",
+	"badge_text_colour": "EEEC9D",
+	"version": "0.0.0",
+	"dependencies": [
+		"Steamodded (>=1.*)",
+		"Talisman"
+	]
+}

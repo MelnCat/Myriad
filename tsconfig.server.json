@@ -1,0 +1,9 @@
+{
+	"compilerOptions": {
+		"target": "ESNext",
+		"moduleResolution": "Node",
+		"strict": true,
+		"noEmit": true
+	},
+	"include": ["publish.ts", "src/util/constants.ts"]
+}
