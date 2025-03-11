@@ -6,7 +6,8 @@
 	"type": "module",
 	"scripts": {
 		"build": "tstl && node publish.ts",
-		"dev": "tstl --watch"
+		"dev": "tstl --watch",
+		"save": "node save.ts"
 	},
 	"keywords": [],
 	"author": "",

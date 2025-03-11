@@ -36,7 +36,7 @@ for (const atlas of jokerAtlases) {
 			{
 				input: await img.toBuffer(),
 				left: (joker.index % ATLAS_WIDTH) * JOKER_WIDTH * 2,
-				top: Math.floor(joker.index / ATLAS_WIDTH) * JOKER_WIDTH * 2,
+				top: Math.floor(joker.index / ATLAS_WIDTH) * JOKER_HEIGHT * 2,
 			}
 		);
 	}

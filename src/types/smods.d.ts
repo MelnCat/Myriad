@@ -3,23 +3,42 @@ declare enum CardArea {
 	Jokers,
 	Hand,
 }
+declare enum Suits {
+	Hearts,
+	Diamonds,
+	Spades,
+	Clubs,
+}
 type RGBA = [number, number, number, number];
-declare interface Colors {
+declare interface BaseColors {
 	[key: string]: RGBA;
 }
+declare type Colors = BaseColors & {
+	SUITS: Record<keyof Suits, Suits & RGBA>;
+};
 declare interface Globals {
 	readonly play: CardArea.Play & { cards: Card[] };
 	readonly jokers: CardArea.Jokers & {
+		cards: Card[];
 		remove_card(card: Card): void;
+		config: {
+			card_limit: number;
+		};
 	};
 	readonly hand: CardArea.Hand;
 	E_MANAGER: EventManager;
 	C: Colors;
 	ARGS: {
 		LOC_COLOURS: {
-			[key: string]: RGBA
+			[key: string]: RGBA;
+		};
+	};
+	GAME: {
+		joker_buffer: number;
+		probabilities: {
+			normal: number;
 		}
-	}
+	};
 }
 declare const G: Globals;
 declare interface EventObject {
@@ -44,64 +63,95 @@ declare const Event: {
 interface EventManager {
 	add_event(event: EventObject): void;
 }
+type BaseContext = {
+	cardarea: CardArea;
+	full_hand: Card[];
+	scoring_hand: unknown;
+	scoring_name: string;
+	poker_hands: unknown;
+	blueprint: boolean;
+	blueprint_card?: Card;
+
+	before: false;
+	main_scoring: false;
+	individual: false;
+	repetition: false;
+	pre_joker: false;
+	joker_main: false;
+	other_joker: undefined;
+	post_joker: false;
+	final_scoring_step: false;
+	destroy_card: null;
+	remove_playing_cards: false;
+	after: false;
+	debuffed_hand: false;
+	end_of_round: false;
+	setting_blind: false;
+	pre_discard: false;
+	discard: false;
+};
+type SpecificContext<T extends keyof BaseContext, V = true> = {
+	[K in keyof BaseContext]: K extends T ? V : BaseContext[K];
+};
+type NonScoringContext<T extends keyof BaseContext, V = true> = Omit<SpecificContext<T, V>, "scoring_hand" | "poker_hands" | "scoring_name" | "full_hand">;
+type DiscardContext<T extends keyof BaseContext, V = true> = Omit<SpecificContext<T, V>, "scoring_hand" | "poker_hands" | "scoring_name">;
 type CalculateContext =
-	| {
-			cardarea: CardArea;
-			full_hand: Card[];
-			scoring_hand: unknown;
-			scoring_name: string;
-			poker_hands: unknown;
-			before: true;
-	  }
-	| {
-			cardarea: CardArea;
-			full_hand: Card[];
-			scoring_hand: unknown;
-			scoring_name: string;
-			poker_hands: unknown;
-			main_scoring: true;
-	  }
-	| {
-			cardarea: CardArea;
-			full_hand: Card[];
-			scoring_hand: unknown;
-			scoring_name: string;
-			poker_hands: unknown;
-			individual: true;
+	| SpecificContext<"before">
+	| SpecificContext<"main_scoring">
+	| (SpecificContext<"individual"> & {
 			other_card: Card;
-	  }
-	| {
-			cardarea: CardArea;
-			full_hand: Card[];
-			scoring_hand: unknown;
-			scoring_name: string;
-			poker_hands: unknown;
-			repetition: true;
+	  })
+	| (SpecificContext<"repetition"> & {
 			card_effects: unknown;
-	  }
-	| {
-			cardarea: CardArea;
-			full_hand: Card[];
-			scoring_hand: unknown;
-			scoring_name: string;
-			poker_hands: unknown;
+	  })
+	| (SpecificContext<"pre_joker"> & {
 			edition: true;
-			pre_joker: true;
-	  }
-	| {
-			cardarea: CardArea;
-			full_hand: Card[];
-			scoring_hand: unknown;
-			scoring_name: string;
-			poker_hands: unknown;
-			joker_main: true;
-	  };
+	  })
+	| SpecificContext<"joker_main">
+	| SpecificContext<"other_joker", Card>
+	| (SpecificContext<"post_joker"> & {
+			edition: true;
+	  })
+	| SpecificContext<"final_scoring_step">
+	| (SpecificContext<"destroy_card", Card> & {
+			destroying_card?: Card;
+	  })
+	| (NonScoringContext<"remove_playing_cards"> & {
+			removed: Card[];
+			scoring_hand?: unknown;
+	  })
+	| SpecificContext<"after">
+	| SpecificContext<"debuffed_hand">
+	| (NonScoringContext<"end_of_round"> & {
+			game_over: boolean;
+	  })
+	| (NonScoringContext<"end_of_round" | "individual"> & {
+			other_card: Card;
+	  })
+	| (NonScoringContext<"end_of_round" | "repetition"> & {
+			other_card: Card;
+			card_effects: unknown;
+	  })
+	| (NonScoringContext<"setting_blind"> & {
+			blind: unknown;
+	  })
+	| (DiscardContext<"pre_discard"> & {
+			hook: boolean;
+	  })
+	| (DiscardContext<"discard"> & {
+			other_card: Card;
+	  });
 
 declare interface ScoreModifiers {
 	chips?: number;
 	mult?: number;
 	xmult?: number;
 	dollars?: number;
+
+	chip_mod?: number;
+	mult_mod?: number;
+	xmult_mod?: number;
+	dollar_mod?: number;
 
 	swap?: boolean;
 	level_up?: number;
@@ -111,6 +161,11 @@ declare interface ScoreModifiers {
 	eemult?: number;
 	eeemult?: number;
 	hypermult?: [number, number];
+	
+	emult_mod?: number;
+	eemult_mod?: number;
+	eeemult_mod?: number;
+	hypermult_mod?: [number, number];
 
 	xchips?: number;
 	echips?: number;
@@ -119,21 +174,22 @@ declare interface ScoreModifiers {
 	hyperchips?: [number, number];
 }
 
-interface CalculateReturn extends ScoreModifiers {}
+interface CalculateReturn extends ScoreModifiers {
+	message?: string;
+}
 
-interface JokerOptions {
+interface JokerOptions<E extends CardAbility> {
 	key: string;
 	name?: string;
 	loc_txt: {
 		name: string;
 		text: string[];
 	};
-	config?: {
-		extra: ScoreModifiers;
-	};
-	loc_vars?(info_queue: unknown, card: Card): { vars: (string | number | undefined)[] };
-	calculate?(card: Card, context: CalculateContext): CalculateReturn | void;
-	rarity?: 1 | 2 | 3 | 4;
+	config?: E;
+	loc_vars?(info_queue: unknown, card: Card<E>): { vars: (string | number | undefined)[] };
+	calculate?(card: Card<E>, context: CalculateContext): CalculateReturn | void;
+	add_to_deck?(card: Card<E>, from_debuff: boolean): void;
+	rarity?: 1 | 2 | 3 | 4 | "cry_epic";
 	atlas?: string;
 	pos?: { x: number; y: number };
 	soul_pos?: { x: number; y: number };
@@ -145,7 +201,34 @@ interface AtlasOptions {
 	px: number;
 	py: number;
 }
+interface CreateCardOptions {
+	set: "Joker" | "Tarot" | "Spectral";
+	area?: CardArea;
+	legendary?: boolean;
+	/**
+	 * "Under vanilla conditions, values up to 0.7 indicate Common rarity, values above 0.7 and up to 0.95 indicate Uncommon rarity, and values above 0.95 indicate Rare rarity."
+	 */
+	rarity?: number;
+	skip_materialize?: boolean;
+	soulable?: boolean;
+	key?: string;
+	key_append?: string;
+	no_edition?: boolean;
+	edition?: unknown;
+	enhancement?: unknown;
+	seal?: unknown;
+	stickers?: unknown;
+}
+
 declare const SMODS: {
-	Joker: (this: void, opts: JokerOptions) => void;
+	Joker: <E extends CardAbility>(this: void, opts: JokerOptions<E>) => void;
 	Atlas: (this: void, opts: AtlasOptions) => void;
+	create_card: (
+		this: void,
+		opts: CreateCardOptions
+	) => Card;
+	add_card: (
+		this: void,
+		opts: CreateCardOptions
+	) => void;
 };

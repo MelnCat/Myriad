@@ -31,7 +31,7 @@ interface CardAbility {
 	extra: ScoreModifiers
 }
 
-declare class Card extends Sprite {
+declare class Card<E extends CardAbility = CardAbility> extends Sprite {
 	playing_card: any;
 	sort_id: number;
 	back: string;
@@ -67,9 +67,8 @@ declare class Card extends Sprite {
 		r: number;
 	};
 	debuff: boolean;
-	rank: any;
 	added_to_deck: any;
-	ability: CardAbility;
+	ability: E;
 	base: any;
 	seal: any;
 	sticker: any;
@@ -91,6 +90,7 @@ declare class Card extends Sprite {
 	getting_sliced: boolean;
 	vampired: boolean;
 
+
 	init(X: number, Y: number, W: number, H: number, card: any, center: any, params?: any): void;
 	update_alert(): void;
 	set_base(card: any, initial?: boolean): void;
@@ -111,6 +111,9 @@ declare class Card extends Sprite {
 	generate_UIBox_unlock_table(hidden?: boolean): any;
 	generate_UIBox_ability_table(): any;
 	get_nominal(mod?: string): number;
+	/**
+	 * The rank. J: 11, Q: 12, K: 13, A: 14
+	 */
 	get_id(): number;
 	is_face(from_boss?: boolean): boolean;
 	get_original_rank(): any;
@@ -141,4 +144,5 @@ declare class Card extends Sprite {
 	calculate_joker(context?: any): any;
 	juice_up(a: number, b: number): void;
 	remove(): void;
+	is_suit(suit: Suits): boolean;
 }

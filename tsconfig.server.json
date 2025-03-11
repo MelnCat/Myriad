@@ -5,5 +5,5 @@
 		"strict": true,
 		"noEmit": true
 	},
-	"include": ["publish.ts", "src/util/constants.ts"]
+	"include": ["publish.ts", "save.ts", "src/util/constants.ts"]
 }
