@@ -2,7 +2,7 @@ import fs, { existsSync, glob } from "fs";
 import sharp from "sharp";
 import { globbySync } from "globby";
 import { fileURLToPath, pathToFileURL } from "url";
-import { dirname } from "path";
+import { basename, dirname } from "path";
 import { ATLAS_WIDTH, JOKER_HEIGHT, JOKER_WIDTH } from "./src/util/constants.ts";
 if (fs.existsSync(new URL("build", import.meta.url))) fs.rmSync(new URL("build", import.meta.url), { recursive: true });
 fs.cpSync(new URL("dist", import.meta.url), new URL("build", import.meta.url), { recursive: true });
@@ -70,8 +70,18 @@ const luaFiles = globbySync(fileURLToPath(new URL("build/**/*.lua", import.meta.
 
 for (const file of luaFiles) {
 	const content = fs.readFileSync(file, { encoding: "utf8" });
+	const replaced = content.replace(/require\("(.+?)"\)/g, (_, a) => ["ffi", "SMODS.https"].includes(a) ? _ : `MYRIAD_INTERNAL_IF_YOU_USE_THIS_YOU_ARE_FIRED("${a.replaceAll(".", "/")}.lua")`);
 	fs.writeFileSync(
 		file,
-		content.replace(/require\("(.+?)"\)/g, (_, a) => `assert(SMODS.load_file("${a.replaceAll(".", "/")}.lua"))()`)
+		basename(file) === "index.lua" ? /* lua */ `\
+local MYRIAD_FILEMAP = {}
+_G.MYRIAD_INTERNAL_IF_YOU_USE_THIS_YOU_ARE_FIRED = function(name)
+    if MYRIAD_FILEMAP[name] ~= nil then
+        return MYRIAD_FILEMAP[name]
+    end
+    MYRIAD_FILEMAP[name] = assert(SMODS.load_file(name))(nil)
+	return MYRIAD_FILEMAP[name]
+end
+${replaced}` : replaced
 	);
 }

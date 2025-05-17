@@ -8,10 +8,12 @@
 		"strict": true,
 		"types": ["lua-types/5.1", "love-typescript-definitions", "@typescript-to-lua/language-extensions"],
 		"outDir": "dist/",
-		"rootDir": "src/"
+		"rootDir": "src/",
+		"esModuleInterop": true
 	},
 	"tstl": {
-		"luaTarget": "5.1"
+		"luaTarget": "5.1",
+		"sourceMapTraceback": true
 	},
 	"include": ["src/**/*.ts"]
 }

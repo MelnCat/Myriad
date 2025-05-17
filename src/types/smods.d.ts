@@ -1,8 +1,12 @@
-declare enum CardArea {
-	Play,
-	Jokers,
-	Hand,
+declare interface CardArea {
+	cards: Card[];
+	remove_card(card: Card): void;
+	shuffle(seed: string): void;
+	config: {
+		card_limit: number;
+	};
 }
+declare const CardArea: CardArea;
 declare enum Suits {
 	Hearts,
 	Diamonds,
@@ -16,17 +20,15 @@ declare interface BaseColors {
 declare type Colors = BaseColors & {
 	SUITS: Record<keyof Suits, Suits & RGBA>;
 };
+declare type GameState = symbol;
 declare interface Globals {
-	readonly play: CardArea.Play & { cards: Card[] };
-	readonly jokers: CardArea.Jokers & {
-		cards: Card[];
-		remove_card(card: Card): void;
-		config: {
-			card_limit: number;
-		};
-	};
-	readonly hand: CardArea.Hand;
+	readonly play: CardArea;
+	readonly jokers: CardArea;
+	readonly hand: CardArea;
+	readonly deck: CardArea;
+	playing_cards: Card[];
 	E_MANAGER: EventManager;
+	F_NO_ERROR_HAND: boolean;
 	C: Colors;
 	ARGS: {
 		LOC_COLOURS: {
@@ -37,7 +39,11 @@ declare interface Globals {
 		joker_buffer: number;
 		probabilities: {
 			normal: number;
-		}
+		};
+	};
+	STATE: GameState;
+	STATES: {
+		DRAW_TO_HAND: GameState;
 	};
 }
 declare const G: Globals;
@@ -161,7 +167,7 @@ declare interface ScoreModifiers {
 	eemult?: number;
 	eeemult?: number;
 	hypermult?: [number, number];
-	
+
 	emult_mod?: number;
 	eemult_mod?: number;
 	eeemult_mod?: number;
@@ -188,6 +194,7 @@ interface JokerOptions<E extends CardAbility> {
 	config?: E;
 	loc_vars?(info_queue: unknown, card: Card<E>): { vars: (string | number | undefined)[] };
 	calculate?(card: Card<E>, context: CalculateContext): CalculateReturn | void;
+	update?(card: Card<E>, dt: number): void;
 	add_to_deck?(card: Card<E>, from_debuff: boolean): void;
 	rarity?: 1 | 2 | 3 | 4 | "cry_epic";
 	atlas?: string;
@@ -219,16 +226,14 @@ interface CreateCardOptions {
 	seal?: unknown;
 	stickers?: unknown;
 }
+type Enhancement = "m_bonus" | "m_mult" | "m_wild" | "m_glass" | "m_steel" | "m_stone" | "m_gold" | "m_lucky";
 
 declare const SMODS: {
 	Joker: <E extends CardAbility>(this: void, opts: JokerOptions<E>) => void;
 	Atlas: (this: void, opts: AtlasOptions) => void;
-	create_card: (
-		this: void,
-		opts: CreateCardOptions
-	) => Card;
-	add_card: (
-		this: void,
-		opts: CreateCardOptions
-	) => void;
+	create_card: (this: void, opts: CreateCardOptions) => Card;
+	add_card: (this: void, opts: CreateCardOptions) => void;
+	has_enhancement(this: void, card: Card, enhancement: Enhancement): boolean;
+	get_enhancements(this: void, card: Card, extra_only?: boolean): Record<Enhancement, boolean>;
+	load_file(this: void, path: string): unknown;
 };

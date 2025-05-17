@@ -68,7 +68,7 @@ declare class Card<E extends CardAbility = CardAbility> extends Sprite {
 	};
 	debuff: boolean;
 	added_to_deck: any;
-	ability: E;
+	ability: E & { name: string; };
 	base: any;
 	seal: any;
 	sticker: any;
@@ -89,6 +89,11 @@ declare class Card<E extends CardAbility = CardAbility> extends Sprite {
 	shattered: boolean;
 	getting_sliced: boolean;
 	vampired: boolean;
+	config: {
+		center: {
+			key: string;
+		}
+	}
 
 
 	init(X: number, Y: number, W: number, H: number, card: any, center: any, params?: any): void;
