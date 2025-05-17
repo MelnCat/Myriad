@@ -1,6 +1,6 @@
 import { getCurrentTemperature } from "../util/arizona";
-import { atlasPos } from "../util/constants";
-import { getUsedMemory, scheduleEvent, steamGames } from "../util/utils";
+import { getUsedMemory, steamGames, username } from "../util/system";
+import { atlasPos, scheduleEvent } from "../util/utils";
 
 enum JokerRarity {
 	COMMON = 1,
@@ -47,7 +47,7 @@ export const initJokers = () => {
 				};
 			}
 		},
-		pos: atlasPos(0),
+		pos: atlasPos("main", "dont"),
 		rarity: JokerRarity.RARE,
 		cost: 8,
 	});
@@ -85,8 +85,8 @@ export const initJokers = () => {
 				};
 			}
 		},
-		pos: atlasPos(1),
-		soul_pos: atlasPos(2),
+		pos: atlasPos("main", "boykisser_fg"),
+		soul_pos: atlasPos("main", "boykisser_bg"),
 		rarity: JokerRarity.LEGENDARY,
 		cost: 20,
 	});
@@ -115,7 +115,7 @@ export const initJokers = () => {
 		add_to_deck(card, from_debuff) {
 			card.sell_cost = 0;
 		},
-		pos: atlasPos(3),
+		pos: atlasPos("main", "fortnitecard"),
 		rarity: JokerRarity.UNCOMMON,
 		cost: 19,
 	});
@@ -139,7 +139,7 @@ export const initJokers = () => {
 					xmult: card.ability.extra.xmult,
 				};
 		},
-		pos: atlasPos(4),
+		pos: atlasPos("main", "jonkler"),
 		rarity: JokerRarity.COMMON,
 		cost: 7,
 	});
@@ -177,7 +177,7 @@ export const initJokers = () => {
 					emult: card.ability.extra.emult,
 				};
 		},
-		pos: atlasPos(5),
+		pos: atlasPos("main", "birchtree"),
 		rarity: JokerRarity.RARE,
 		cost: 7,
 	});
@@ -185,10 +185,10 @@ export const initJokers = () => {
 		key: "floatation",
 		loc_txt: {
 			name: "Floatation",
-			text: ["When the deck is shuffled,", "move all {C:attention}Enhanced cards{}", "to the top of the deck."],
+			text: ["When the deck is shuffled,", "move all {C:attention}Enhanced cards{}", "to the {C:attention}top{} of the deck."],
 		},
 		atlas: "myd-main",
-		pos: atlasPos(6),
+		pos: atlasPos("main", "floatation"),
 		rarity: JokerRarity.RARE,
 		cost: 7,
 	});
@@ -196,7 +196,7 @@ export const initJokers = () => {
 		key: "arizona",
 		loc_txt: {
 			name: "Arizona",
-			text: ["{C:mult}+#1#{} Mult for every °C of temperature", "in Arizona currently.", "{C:inactive}(Currently {C:mult}+#2#{C:inactive} Mult)"],
+			text: ["{C:mult}+#1#{} Mult for every °C of temperature", "in Arizona currently", "{C:inactive}(Currently {C:mult}+#2#{C:inactive} Mult)"],
 		},
 		loc_vars(_, card) {
 			return { vars: [card.ability.extra.mult_mod, card.ability.extra.mult] };
@@ -205,7 +205,7 @@ export const initJokers = () => {
 			extra: { mult: 0, mult_mod: 1 },
 		},
 		atlas: "myd-main",
-		pos: atlasPos(7),
+		pos: atlasPos("main", "arizona"),
 		rarity: JokerRarity.COMMON,
 		cost: 3,
 		update(card, dt) {
@@ -216,7 +216,7 @@ export const initJokers = () => {
 		key: "steam",
 		loc_txt: {
 			name: "Steam",
-			text: ["{C:mult}+#1#{} Mult for every", "{C:attention}steam game{} installed.", "{C:inactive}(Currently {C:mult}+#2#{C:inactive} Mult)"],
+			text: ["{C:mult}+#1#{} Mult for every", "{C:attention}steam game{} installed", "{C:inactive}(Currently {C:mult}+#2#{C:inactive} Mult)"],
 		},
 		loc_vars(_, card) {
 			return { vars: [card.ability.extra.mult_mod, card.ability.extra.mult] };
@@ -225,7 +225,7 @@ export const initJokers = () => {
 			extra: { mult: steamGames, mult_mod: 1 },
 		},
 		atlas: "myd-main",
-		pos: atlasPos(8),
+		pos: atlasPos("main", "steam"),
 		rarity: JokerRarity.COMMON,
 		cost: 3,
 	});
@@ -233,7 +233,7 @@ export const initJokers = () => {
 		key: "dedotatedwam",
 		loc_txt: {
 			name: "Dedotated Wam",
-			text: ["{X:mult,C:white}X#1#{} Mult for every {C:green}GB{}", "of {C:attention}RAM{} in use.", "{C:inactive}(Currently {X:mult,C:white}X#2#{C:inactive} Mult)"],
+			text: ["{X:mult,C:white}X#1#{} Mult for every {C:green}GB{}", "of {C:attention}RAM{} in use", "{C:inactive}(Currently {X:mult,C:white}X#2#{C:inactive} Mult)"],
 		},
 		loc_vars(_, card) {
 			return { vars: [card.ability.extra.xmult_mod, card.ability.extra.xmult] };
@@ -242,11 +242,28 @@ export const initJokers = () => {
 			extra: { xmult: 0, xmult_mod: 1 },
 		},
 		atlas: "myd-main",
-		pos: atlasPos(9),
+		pos: atlasPos("main", "dedotatedwam"),
 		rarity: JokerRarity.RARE,
 		cost: 3,
 		update(card, dt) {
 			card.ability.extra.xmult = card.ability.extra.xmult_mod * getUsedMemory() - 1;
 		},
+	});
+	SMODS.Joker({
+		key: "you",
+		loc_txt: {
+			name: username,
+			text: ["crab"],
+		},
+		loc_vars(_, card) {
+			return { vars: [card.ability.extra.xmult_mod, card.ability.extra.xmult] };
+		},
+		config: {
+			extra: { xmult: 0, xmult_mod: 1 },
+		},
+		atlas: "myd-main",
+		pos: atlasPos("main", "you"),
+		rarity: JokerRarity.UNCOMMON,
+		cost: 6,
 	});
 };

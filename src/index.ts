@@ -1,7 +1,6 @@
 import { initJokers } from "./jokers/jokers";
-import { getCurrentTemperature, updateTemperature } from "./util/arizona";
-import { atlasPos } from "./util/constants";
-import { hook, hsv2rgb, prefixedJoker, scheduleEvent, steamGames } from "./util/utils";
+import { updateTemperature } from "./util/arizona";
+import { hook, hsv2rgb, prefixedJoker } from "./util/utils";
 
 SMODS.Atlas({
 	key: "myd-main",

@@ -1,3 +1,4 @@
+import { atlasData } from "../data/atlas";
 import * as nativefs from "../lib/nativefs";
 import * as ffi from "ffi";
 
@@ -41,43 +42,14 @@ export const scheduleEvent = (func: () => boolean, opts?: Partial<EventObject>) 
 
 export const prefixedJoker = (key: string) => `j_myriad_${key}`;
 
-export const debounce = <T extends (...args: any[]) => any>(func: T, ms: number) => {
+export const debounce = <T extends (...args: any[]) => any>(func: T, ms: number): T => {
 	let lastCall = 0;
 	let lastReturn: ReturnType<T> = null as ReturnType<T>;
-	return (...args: Parameters<T>) => {
+	return ((...args: Parameters<T>) => {
 		if (lastCall > love.timer.getTime() * 1000) return lastReturn;
 		lastCall = love.timer.getTime() * 1000 + ms;
 		return (lastReturn = func(...args));
-	};
+	}) as T;
 };
 
-export const steamGames =
-	nativefs.getDirectoryItems("C:\\Program Files (x86)\\Steam\\steamapps").filter(x => x.endsWith(".acf")).length ||
-	nativefs.getDirectoryItems(`${os.getenv("HOME")}/Library/Application Support/Steam/steamapps`).filter(x => x.endsWith(".acf")).length ||
-	nativefs.getDirectoryItems(`${os.getenv("HOME")}/.steam/steam/steamapps`).filter(x => x.endsWith(".acf")).length;
-
-ffi.cdef(/* c */ `
-    typedef unsigned long long ULL;
-	typedef struct _MEMORYSTATUSEX {
-		unsigned long dwLength;
-		unsigned long dwMemoryLoad;
-		unsigned long long ullTotalPhys;
-		unsigned long long ullAvailPhys;
-		unsigned long long ullTotalPageFile;
-		unsigned long long ullAvailPageFile;
-		unsigned long long ullTotalVirtual;
-		unsigned long long ullAvailVirtual;
-		unsigned long long ullAvailExtendedVirtual;
-	} MEMORYSTATUSEX;
-
-	int GlobalMemoryStatusEx(MEMORYSTATUSEX *lpBuffer);
-`);
-
-const memoryStatus = ffi.new("MEMORYSTATUSEX");
-memoryStatus.dwLength = ffi.sizeof(memoryStatus);
-
-export const getUsedMemory = debounce(() => {
-	ffi.C.GlobalMemoryStatusEx(memoryStatus);
-
-	return Math.round(tonumber(memoryStatus.ullTotalPhys - memoryStatus.ullAvailPhys)! / 100000000)! / 10;
-}, 1000);
+export const atlasPos = (key: keyof typeof atlasData["jokerPos"], name: string) => atlasData.jokerPos[key][name];

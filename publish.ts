@@ -2,7 +2,7 @@ import fs, { existsSync, glob } from "fs";
 import sharp from "sharp";
 import { globbySync } from "globby";
 import { fileURLToPath, pathToFileURL } from "url";
-import { basename, dirname } from "path";
+import path, { basename, dirname } from "path";
 import { ATLAS_WIDTH, JOKER_HEIGHT, JOKER_WIDTH } from "./src/util/constants.ts";
 if (fs.existsSync(new URL("build", import.meta.url))) fs.rmSync(new URL("build", import.meta.url), { recursive: true });
 fs.cpSync(new URL("dist", import.meta.url), new URL("build", import.meta.url), { recursive: true });
@@ -13,12 +13,10 @@ if (!fs.existsSync(new URL("build/assets/2x", import.meta.url))) fs.mkdirSync(ne
 const jokerAtlases = fs.readdirSync(new URL("jokers", import.meta.url));
 
 fs.mkdirSync(new URL(`build/assets/2x/jokers/`, import.meta.url), { recursive: true });
-
+let atlases: Record<string, Record<string, { x: number; y: number }>> = {};
 for (const atlas of jokerAtlases) {
-	const jokers = fs.readdirSync(new URL(`jokers/${atlas}`, import.meta.url)).map(x => {
-		const matched = x.match(/(\d)+_(.+)\.png/);
-		return { index: +matched![1], filename: x };
-	});
+	atlases[atlas] = {};
+	const jokers = fs.readdirSync(new URL(`jokers/${atlas}`, import.meta.url));
 	let image = sharp({
 		create: {
 			width: JOKER_WIDTH * ATLAS_WIDTH * 2,
@@ -27,18 +25,17 @@ for (const atlas of jokerAtlases) {
 			background: { r: 0, g: 0, b: 0, alpha: 0 },
 		},
 	});
-	let toCompose: { input: Buffer, left: number, top: number }[] = []
-	for (const joker of jokers.sort((a, b) => a.index - b.index)) {
-		const img = sharp(fileURLToPath(new URL(`jokers/${atlas}/${joker.filename}`, import.meta.url)));
+	let toCompose: { input: Buffer; left: number; top: number }[] = [];
+	for (const [i, joker] of jokers.sort((a, b) => a.localeCompare(b)).entries()) {
+		atlases[atlas][path.parse(joker).name] = { x: i % ATLAS_WIDTH, y: Math.floor(i / ATLAS_WIDTH) };
+		const img = sharp(fileURLToPath(new URL(`jokers/${atlas}/${joker}`, import.meta.url)));
 		const meta = await img.metadata();
 		if (meta.width === JOKER_WIDTH) img.resize(meta.width! * 2, meta.height! * 2, { kernel: "nearest" });
-		toCompose.push(
-			{
-				input: await img.toBuffer(),
-				left: (joker.index % ATLAS_WIDTH) * JOKER_WIDTH * 2,
-				top: Math.floor(joker.index / ATLAS_WIDTH) * JOKER_HEIGHT * 2,
-			}
-		);
+		toCompose.push({
+			input: await img.toBuffer(),
+			left: (i % ATLAS_WIDTH) * JOKER_WIDTH * 2,
+			top: Math.floor(i / ATLAS_WIDTH) * JOKER_HEIGHT * 2,
+		});
 	}
 
 	await image.composite(toCompose).toFile(fileURLToPath(new URL(`build/assets/2x/jokers/${atlas}.png`, import.meta.url)));
@@ -70,10 +67,19 @@ const luaFiles = globbySync(fileURLToPath(new URL("build/**/*.lua", import.meta.
 
 for (const file of luaFiles) {
 	const content = fs.readFileSync(file, { encoding: "utf8" });
-	const replaced = content.replace(/require\("(.+?)"\)/g, (_, a) => ["ffi", "SMODS.https"].includes(a) ? _ : `MYRIAD_INTERNAL_IF_YOU_USE_THIS_YOU_ARE_FIRED("${a.replaceAll(".", "/")}.lua")`);
+	const replaced = (() => {
+		let str = content;
+		str = str.replace(/require\("(.+?)"\)/g, (_, a) =>
+			["ffi", "SMODS.https"].includes(a) ? _ : `MYRIAD_INTERNAL_IF_YOU_USE_THIS_YOU_ARE_FIRED("${a.replaceAll(".", "/")}.lua")`
+		);
+		if (file.endsWith("atlas.lua")) str = str.replace(`"<data>"`, JSON.stringify(JSON.stringify(atlases)));
+		return str;
+	})();
+
 	fs.writeFileSync(
 		file,
-		basename(file) === "index.lua" ? /* lua */ `\
+		basename(file) === "index.lua"
+			? /* lua */ `\
 local MYRIAD_FILEMAP = {}
 _G.MYRIAD_INTERNAL_IF_YOU_USE_THIS_YOU_ARE_FIRED = function(name)
     if MYRIAD_FILEMAP[name] ~= nil then
@@ -82,6 +88,9 @@ _G.MYRIAD_INTERNAL_IF_YOU_USE_THIS_YOU_ARE_FIRED = function(name)
     MYRIAD_FILEMAP[name] = assert(SMODS.load_file(name))(nil)
 	return MYRIAD_FILEMAP[name]
 end
-${replaced}` : replaced
+${replaced}`
+			: replaced
 	);
 }
+
+console.log("ok");
