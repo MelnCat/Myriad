@@ -253,17 +253,23 @@ export const initJokers = () => {
 		key: "you",
 		loc_txt: {
 			name: username,
-			text: ["crab"],
-		},
-		loc_vars(_, card) {
-			return { vars: [card.ability.extra.xmult_mod, card.ability.extra.xmult] };
-		},
-		config: {
-			extra: { xmult: 0, xmult_mod: 1 },
+			text: ["???"],
 		},
 		atlas: "myd-main",
 		pos: atlasPos("main", "you"),
-		rarity: JokerRarity.UNCOMMON,
+		rarity: JokerRarity.COMMON,
 		cost: 6,
+		update(card, dt) {
+			if (love.keyboard.isDown("lalt", "ralt") && love.keyboard.isDown("tab")) {
+				print("Creating")
+				SMODS.create_card({
+					set: "Code",
+					key: "alttab",
+					edition: {
+						negative: true
+					}
+				})
+			}
+		},
 	});
 };

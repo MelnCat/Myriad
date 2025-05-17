@@ -26,6 +26,7 @@ declare interface Globals {
 	readonly jokers: CardArea;
 	readonly hand: CardArea;
 	readonly deck: CardArea;
+	readonly consumeables: CardArea;
 	playing_cards: Card[];
 	E_MANAGER: EventManager;
 	F_NO_ERROR_HAND: boolean;
@@ -209,7 +210,7 @@ interface AtlasOptions {
 	py: number;
 }
 interface CreateCardOptions {
-	set: "Joker" | "Tarot" | "Spectral";
+	set: "Joker" | "Tarot" | "Spectral" | "Code" /* cryptid */ | "RCode" /* entropy */;
 	area?: CardArea;
 	legendary?: boolean;
 	/**
