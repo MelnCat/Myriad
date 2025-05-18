@@ -3,7 +3,10 @@ import * as nativefs from "../lib/nativefs";
 import * as ffi from "ffi";
 
 type Methods<T> = {
-	[K in keyof T]: T[K] extends (this: T, ...args: any[]) => any ? K : never;
+	[K in keyof T]: NonNullable<T[K]> extends (this: T, ...args: any[]) => any ? K : never;
+}[keyof T];
+type PlainMethods<T> = {
+	[K in keyof T]: NonNullable<T[K]> extends (this: void, ...args: any[]) => any ? K : never;
 }[keyof T];
 export const hook = <O, K extends Methods<O>>(obj: O, key: K) => {
 	const old = obj[key] as (this: O) => void;
@@ -11,16 +14,36 @@ export const hook = <O, K extends Methods<O>>(obj: O, key: K) => {
 	let after = () => {};
 	obj[key] = function (this: O, ...args: Parameters<typeof old>) {
 		before.call(this, ...args);
-		old.call(this, ...args);
+		old?.call(this, ...args);
 		after.call(this, ...args);
 	} as O[K];
 	return {
-		before(cb: (this: O, ...args: O[K] extends (...args: any) => any ? Parameters<O[K]> : []) => void) {
+		before(cb: (this: O, ...args: NonNullable<O[K]> extends (...args: any) => any ? Parameters<NonNullable<O[K]>> : []) => void) {
 			before = cb as () => void;
 			return this;
 		},
-		after(cb: (this: O, ...args: O[K] extends (...args: any) => any ? Parameters<O[K]> : []) => void) {
+		after(cb: (this: O, ...args: NonNullable<O[K]> extends (...args: any) => any ? Parameters<NonNullable<O[K]>> : []) => void) {
 			after = cb as () => void;
+			return this;
+		},
+	};
+};
+export const hookPlain = <O, K extends PlainMethods<O>>(obj: O, key: K) => {
+	const old = obj[key] as (this: void) => void;
+	let before: (this: void) => void = () => {};
+	let after: (this: void) => void = () => {};
+	obj[key] = function (this: void, ...args: Parameters<typeof old>) {
+		before(...args);
+		old?.(...args);
+		before(...args);
+	} as O[K];
+	return {
+		before(cb: (this: void, ...args: NonNullable<O[K]> extends (...args: any) => any ? Parameters<NonNullable<O[K]>> : []) => void) {
+			before = cb;
+			return this;
+		},
+		after(cb: (this: void, ...args: NonNullable<O[K]> extends (...args: any) => any ? Parameters<NonNullable<O[K]>> : []) => void) {
+			after = cb;
 			return this;
 		},
 	};
@@ -51,5 +74,18 @@ export const debounce = <T extends (...args: any[]) => any>(func: T, ms: number)
 		return (lastReturn = func(...args));
 	}) as T;
 };
+export const debounceOwned = <U, T extends (this: U, ...args: any[]) => any>(func: T, ms: number): T => {
+	let lastCall = 0;
+	let lastReturn: ReturnType<T> = null as ReturnType<T>;
+	return (function(this: U, ...args: Parameters<T>) {
+		if (lastCall > love.timer.getTime() * 1000) return lastReturn;
+		lastCall = love.timer.getTime() * 1000 + ms;
+		return (lastReturn = func.call(this, ...args));
+	}) as T;
+};
 
-export const atlasPos = (key: keyof typeof atlasData["jokerPos"], name: string) => atlasData.jokerPos[key][name];
+type AtlasCategory = keyof (typeof atlasData)["pos"];
+export const atlasPos = <T extends AtlasCategory>(category: T, key: keyof (typeof atlasData)["pos"][T], name: string) =>
+	(atlasData.pos[category][key] as Record<string, { x: number; y: number }>)[name];
+export const atlasJoker = (key: keyof (typeof atlasData)["pos"]["jokers"], name: string) => atlasPos("jokers", key, name)
+export const findJoker = (key: string) => G?.jokers?.cards?.find(x => x.config.center.key === prefixedJoker(key));

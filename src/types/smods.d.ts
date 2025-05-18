@@ -179,6 +179,8 @@ declare interface ScoreModifiers {
 	eechips?: number;
 	eeechips?: number;
 	hyperchips?: [number, number];
+
+	[other: string]: unknown;
 }
 
 interface CalculateReturn extends ScoreModifiers {
@@ -200,7 +202,7 @@ interface JokerOptions<E extends CardAbility> {
 	rarity?: 1 | 2 | 3 | 4 | "cry_epic";
 	atlas?: string;
 	pos?: { x: number; y: number };
-	soul_pos?: { x: number; y: number };
+	soul_pos?: { x: number; y: number; extra?: { x: number; y: number } };
 	cost?: number;
 }
 interface AtlasOptions {

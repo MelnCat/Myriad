@@ -2,10 +2,12 @@
 import * as json from "../lib/json";
 
 interface AtlasData {
-	jokerPos: {
-		main: Record<string, {x: number, y: number}>;
+	pos: {
+		jokers: {
+			main: Record<string, { x: number; y: number }>;
+		};
 	};
 }
 export const atlasData: AtlasData = {
-	jokerPos: json.decode("<data>")
+	pos: json.decode("<data>"),
 };

@@ -1,6 +1,7 @@
+import { atlasData } from "../data/atlas";
 import { getCurrentTemperature } from "../util/arizona";
 import { getUsedMemory, steamGames, username } from "../util/system";
-import { atlasPos, scheduleEvent } from "../util/utils";
+import { atlasJoker, debounce, debounceOwned, scheduleEvent } from "../util/utils";
 
 enum JokerRarity {
 	COMMON = 1,
@@ -41,13 +42,12 @@ export const initJokers = () => {
 					);
 					return true;
 				});
-				[].concat.apply(1 as any);
 				return {
 					eemult: card.ability.extra.eemult,
 				};
 			}
 		},
-		pos: atlasPos("main", "dont"),
+		pos: atlasJoker("main", "dont"),
 		rarity: JokerRarity.RARE,
 		cost: 8,
 	});
@@ -85,8 +85,8 @@ export const initJokers = () => {
 				};
 			}
 		},
-		pos: atlasPos("main", "boykisser_fg"),
-		soul_pos: atlasPos("main", "boykisser_bg"),
+		pos: atlasJoker("main", "boykisser_bg"),
+		soul_pos: atlasJoker("main", "boykisser_fg"),
 		rarity: JokerRarity.LEGENDARY,
 		cost: 20,
 	});
@@ -115,7 +115,7 @@ export const initJokers = () => {
 		add_to_deck(card, from_debuff) {
 			card.sell_cost = 0;
 		},
-		pos: atlasPos("main", "fortnitecard"),
+		pos: atlasJoker("main", "fortnitecard"),
 		rarity: JokerRarity.UNCOMMON,
 		cost: 19,
 	});
@@ -139,7 +139,7 @@ export const initJokers = () => {
 					xmult: card.ability.extra.xmult,
 				};
 		},
-		pos: atlasPos("main", "jonkler"),
+		pos: atlasJoker("main", "jonkler"),
 		rarity: JokerRarity.COMMON,
 		cost: 7,
 	});
@@ -159,7 +159,7 @@ export const initJokers = () => {
 			return { vars: [G.GAME.probabilities.normal ?? 1, card.ability.extra.odds, card.ability.extra.emult_mod, card.ability.extra.emult] };
 		},
 		config: {
-			extra: { emult: 1, emult_mod: 0.1, odds: 3 },
+			extra: { emult: 1, emult_mod: 0.02, odds: 3 },
 		},
 		atlas: "myd-main",
 		calculate(card, context) {
@@ -177,7 +177,7 @@ export const initJokers = () => {
 					emult: card.ability.extra.emult,
 				};
 		},
-		pos: atlasPos("main", "birchtree"),
+		pos: atlasJoker("main", "birchtree"),
 		rarity: JokerRarity.RARE,
 		cost: 7,
 	});
@@ -188,7 +188,7 @@ export const initJokers = () => {
 			text: ["When the deck is shuffled,", "move all {C:attention}Enhanced cards{}", "to the {C:attention}top{} of the deck."],
 		},
 		atlas: "myd-main",
-		pos: atlasPos("main", "floatation"),
+		pos: atlasJoker("main", "floatation"),
 		rarity: JokerRarity.RARE,
 		cost: 7,
 	});
@@ -205,9 +205,15 @@ export const initJokers = () => {
 			extra: { mult: 0, mult_mod: 1 },
 		},
 		atlas: "myd-main",
-		pos: atlasPos("main", "arizona"),
+		pos: atlasJoker("main", "arizona"),
 		rarity: JokerRarity.COMMON,
 		cost: 3,
+		calculate(card, context) {
+			if (context.joker_main)
+				return {
+					mult: card.ability.extra.mult,
+				};
+		},
 		update(card, dt) {
 			card.ability.extra.mult = card.ability.extra.mult_mod * getCurrentTemperature();
 		},
@@ -225,9 +231,15 @@ export const initJokers = () => {
 			extra: { mult: steamGames, mult_mod: 1 },
 		},
 		atlas: "myd-main",
-		pos: atlasPos("main", "steam"),
+		pos: atlasJoker("main", "steam"),
 		rarity: JokerRarity.COMMON,
 		cost: 3,
+		calculate(card, context) {
+			if (context.joker_main)
+				return {
+					mult: card.ability.extra.mult,
+				};
+		},
 	});
 	SMODS.Joker({
 		key: "dedotatedwam",
@@ -242,9 +254,15 @@ export const initJokers = () => {
 			extra: { xmult: 0, xmult_mod: 1 },
 		},
 		atlas: "myd-main",
-		pos: atlasPos("main", "dedotatedwam"),
+		pos: atlasJoker("main", "dedotatedwam"),
 		rarity: JokerRarity.RARE,
 		cost: 3,
+		calculate(card, context) {
+			if (context.joker_main)
+				return {
+					xmult: card.ability.extra.xmult,
+				};
+		},
 		update(card, dt) {
 			card.ability.extra.xmult = card.ability.extra.xmult_mod * getUsedMemory() - 1;
 		},
@@ -253,22 +271,70 @@ export const initJokers = () => {
 		key: "you",
 		loc_txt: {
 			name: username,
-			text: ["???"],
+			text: ["Pressed {C:attention}key combinations{} create", "the corresponding {C:cry_code}Code Card{}", "{C:inactive}({C:attention}#1#{C:inactive} uses remaining)"],
+		},
+		loc_vars(_, card) {
+			return { vars: [card.ability.extra.uses] };
+		},
+		config: {
+			extra: { uses: 5, using: false },
 		},
 		atlas: "myd-main",
-		pos: atlasPos("main", "you"),
+		pos: atlasJoker("main", "you"),
 		rarity: JokerRarity.COMMON,
 		cost: 6,
 		update(card, dt) {
-			if (love.keyboard.isDown("lalt", "ralt") && love.keyboard.isDown("tab")) {
-				print("Creating")
-				SMODS.create_card({
+			if (card.ability.extra.uses <= 0 || card.ability.extra.using) return;
+			const key =
+				love.keyboard.isDown("lctrl", "rctrl") && love.keyboard.isDown("v")
+					? "c_cry_ctrl_v"
+					: love.keyboard.isDown("delete")
+					? "c_cry_delete"
+					: love.keyboard.isDown("/")
+					? "c_cry_divide"
+					: love.keyboard.isDown("8") && love.keyboard.isDown("lshift", "rshift")
+					? "c_cry_multiply"
+					: null;
+			if (key) {
+				SMODS.add_card({
 					set: "Code",
-					key: "alttab",
+					key,
 					edition: {
-						negative: true
-					}
-				})
+						negative: true,
+					},
+					area: G.consumeables,
+				});
+				card.ability.extra.uses--;
+				card.ability.extra.using = true;
+				scheduleEvent(
+					() => {
+						card.ability.extra.using = false;
+						return true;
+					},
+					{ delay: 0.5 }
+				);
+				return;
+			}
+			const rkey = love.keyboard.isDown("lctrl", "rctrl") && love.keyboard.isDown("x") ? "c_entr_ctrl_x" : null;
+			if (rkey) {
+				SMODS.add_card({
+					set: "RCode",
+					key: rkey,
+					edition: {
+						negative: true,
+					},
+					area: G.consumeables,
+				});
+				card.ability.extra.uses--;
+				card.ability.extra.using = true;
+				scheduleEvent(
+					() => {
+						card.ability.extra.using = false;
+						return true;
+					},
+					{ delay: 0.5 }
+				);
+				return;
 			}
 		},
 	});
