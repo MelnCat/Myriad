@@ -204,6 +204,7 @@ interface JokerOptions<E extends CardAbility> {
 	pos?: { x: number; y: number };
 	soul_pos?: { x: number; y: number; extra?: { x: number; y: number } };
 	cost?: number;
+	pixel_size?: { w: number; h: number };
 }
 interface AtlasOptions {
 	key: string;

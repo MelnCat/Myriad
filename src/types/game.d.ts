@@ -14,3 +14,5 @@ declare const card_eval_status_text: (
 	extra?: { focus?: Card; colour?: RGBA; message: string /* todo */ }
 ) => void;
 declare const pseudorandom: (this: void, key: string) => number;
+declare let mult: number;
+declare let chips: number;

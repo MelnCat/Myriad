@@ -150,7 +150,7 @@ export const initJokers = () => {
 			text: [
 				"All discarded cards have a",
 				"{C:green}#1# in #2#{} chance to be {C:attention}destroyed{}",
-				"Gains {X:dark_edition,C:white}^#3#{} for every card discarded",
+				"Gains {X:dark_edition,C:white}^#3#{} for every card destroyed",
 				"{C:inactive}(Currently {X:dark_edition,C:white}^#4#{C:inactive} Mult)",
 				"{C:inactive,s:0.8,E:1}what a nice tree",
 			],
@@ -159,7 +159,7 @@ export const initJokers = () => {
 			return { vars: [G.GAME.probabilities.normal ?? 1, card.ability.extra.odds, card.ability.extra.emult_mod, card.ability.extra.emult] };
 		},
 		config: {
-			extra: { emult: 1, emult_mod: 0.02, odds: 3 },
+			extra: { emult: 1, emult_mod: 0.05, odds: 3 },
 		},
 		atlas: "myd-main",
 		calculate(card, context) {
@@ -337,5 +337,23 @@ export const initJokers = () => {
 				return;
 			}
 		},
+	});
+	SMODS.Joker({
+		key: "squarepacking",
+		loc_txt: {
+			name: "Square Packing",
+			text: ["Rounds Mult up to the", "nearest {C:attention}perfect square{}"],
+		},
+		atlas: "myd-main",
+		pos: atlasJoker("main", "squarepacking"),
+		pixel_size: { w: 71, h:71 },
+		rarity: JokerRarity.COMMON,
+		cost: 3,
+		calculate(card, context) {
+			if (context.joker_main)
+				return {
+					mult: Math.ceil(Math.sqrt(mult)) ** 2 - mult,
+				};
+		}
 	});
 };
