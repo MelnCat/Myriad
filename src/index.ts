@@ -1,16 +1,25 @@
-import { initJokers } from "./jokers/jokers";
+import { initChemicals } from "./items/consumables/chemicals";
+import { initJokers } from "./items/jokers/jokers";
 import { updateTemperature } from "./util/arizona";
 import { findJoker, hook, hookPlain, hsv2rgb, prefixedJoker, scheduleEvent } from "./util/utils";
 
 SMODS.Atlas({
-	key: "myd-main",
+	key: "myd-j-main",
 	path: "jokers/main.png",
+	px: 71,
+	py: 95,
+});
+
+SMODS.Atlas({
+	key: "myd-c-chemicals",
+	path: "consumables/chemicals.png",
 	px: 71,
 	py: 95,
 });
 
 G.C.FISH = [0, 0, 0, 1];
 initJokers();
+initChemicals();
 hook(CardArea, "shuffle").after(function () {
 	if (this === G.deck) {
 		const floatation = findJoker("floatation");

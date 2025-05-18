@@ -1,7 +1,7 @@
-import { atlasData } from "../data/atlas";
-import { getCurrentTemperature } from "../util/arizona";
-import { getUsedMemory, steamGames, username } from "../util/system";
-import { atlasJoker, debounce, debounceOwned, scheduleEvent } from "../util/utils";
+import { atlasData } from "../../data/atlas";
+import { getCurrentTemperature } from "../../util/arizona";
+import { getUsedMemory, steamGames, username } from "../../util/system";
+import { atlasJoker, debounce, debounceOwned, scheduleEvent } from "../../util/utils";
 
 enum JokerRarity {
 	COMMON = 1,
@@ -13,14 +13,10 @@ enum JokerRarity {
 export const initJokers = () => {
 	SMODS.Joker({
 		key: "theokisser",
-		loc_txt: {
-			name: "Theokisser",
-			text: ["{X:fish,C:white}^^#1#{} Mult{}", "{C:red,E:2}self destructs after", "{C:red,E:2}hand is played"],
-		},
 		loc_vars(_, card) {
 			return { vars: [card.ability.extra.eemult] };
 		},
-		atlas: "myd-main",
+		atlas: "myd-j-main",
 		config: {
 			extra: { eemult: 7.12 },
 		},
@@ -53,18 +49,10 @@ export const initJokers = () => {
 	});
 	SMODS.Joker({
 		key: "boykisser",
-		loc_txt: {
-			name: "Boykisser",
-			text: [
-				"Gains {X:mult,C:white}X#1#{} Mult{} when a",
-				"{C:attention}King{} or {C:attention}Jack{} is scored",
-				"{C:inactive}(Currently {X:mult,C:white}X#2#{C:inactive} Mult)",
-			],
-		},
 		loc_vars(_, card) {
 			return { vars: [card.ability.extra.xmult_mod, card.ability.extra.xmult] };
 		},
-		atlas: "myd-main",
+		atlas: "myd-j-main",
 		config: {
 			extra: { xmult: 1, xmult_mod: 0.25 },
 		},
@@ -92,11 +80,7 @@ export const initJokers = () => {
 	});
 	SMODS.Joker({
 		key: "fortnitecard",
-		loc_txt: {
-			name: "19 Dollar Fortnite Card",
-			text: ["When {C:attention}Blind{} is selected,", "create a random {C:attention}{C:green}Uncommon{C:attention} Joker", "{C:inactive}(Must have room)"],
-		},
-		atlas: "myd-main",
+		atlas: "myd-j-main",
 		calculate(card, context) {
 			if (context.setting_blind && !card.getting_sliced) {
 				if (G.GAME.joker_buffer + G.jokers.cards.length + 1 > G.jokers.config.card_limit) return;
@@ -121,17 +105,13 @@ export const initJokers = () => {
 	});
 	SMODS.Joker({
 		key: "jonkler",
-		loc_txt: {
-			name: "The Jonkler",
-			text: ["{C:mult}#1#{} Mult", "{X:mult,C:white}X#2#{} Mult"],
-		},
 		loc_vars(_, card) {
 			return { vars: [card.ability.extra.mult, card.ability.extra.xmult] };
 		},
 		config: {
 			extra: { mult: -16, xmult: 2.5 },
 		},
-		atlas: "myd-main",
+		atlas: "myd-j-main",
 		calculate(card, context) {
 			if (context.joker_main)
 				return {
@@ -145,23 +125,13 @@ export const initJokers = () => {
 	});
 	SMODS.Joker({
 		key: "birchtree",
-		loc_txt: {
-			name: "Birch Tree",
-			text: [
-				"All discarded cards have a",
-				"{C:green}#1# in #2#{} chance to be {C:attention}destroyed{}",
-				"Gains {X:dark_edition,C:white}^#3#{} for every card destroyed",
-				"{C:inactive}(Currently {X:dark_edition,C:white}^#4#{C:inactive} Mult)",
-				"{C:inactive,s:0.8,E:1}what a nice tree",
-			],
-		},
 		loc_vars(_, card) {
 			return { vars: [G.GAME.probabilities.normal ?? 1, card.ability.extra.odds, card.ability.extra.emult_mod, card.ability.extra.emult] };
 		},
 		config: {
 			extra: { emult: 1, emult_mod: 0.05, odds: 3 },
 		},
-		atlas: "myd-main",
+		atlas: "myd-j-main",
 		calculate(card, context) {
 			if (context.discard && !context.blueprint) {
 				if (pseudorandom("myd-birchtree") > G.GAME.probabilities.normal / card.ability.extra.odds) return;
@@ -183,28 +153,20 @@ export const initJokers = () => {
 	});
 	SMODS.Joker({
 		key: "floatation",
-		loc_txt: {
-			name: "Floatation",
-			text: ["When the deck is shuffled,", "move all {C:attention}Enhanced cards{}", "to the {C:attention}top{} of the deck."],
-		},
-		atlas: "myd-main",
+		atlas: "myd-j-main",
 		pos: atlasJoker("main", "floatation"),
 		rarity: JokerRarity.RARE,
 		cost: 7,
 	});
 	SMODS.Joker({
 		key: "arizona",
-		loc_txt: {
-			name: "Arizona",
-			text: ["{C:mult}+#1#{} Mult for every °C of temperature", "in Arizona currently", "{C:inactive}(Currently {C:mult}+#2#{C:inactive} Mult)"],
-		},
 		loc_vars(_, card) {
 			return { vars: [card.ability.extra.mult_mod, card.ability.extra.mult] };
 		},
 		config: {
 			extra: { mult: 0, mult_mod: 1 },
 		},
-		atlas: "myd-main",
+		atlas: "myd-j-main",
 		pos: atlasJoker("main", "arizona"),
 		rarity: JokerRarity.COMMON,
 		cost: 3,
@@ -220,17 +182,13 @@ export const initJokers = () => {
 	});
 	SMODS.Joker({
 		key: "steam",
-		loc_txt: {
-			name: "Steam",
-			text: ["{C:mult}+#1#{} Mult for every", "{C:attention}steam game{} installed", "{C:inactive}(Currently {C:mult}+#2#{C:inactive} Mult)"],
-		},
 		loc_vars(_, card) {
 			return { vars: [card.ability.extra.mult_mod, card.ability.extra.mult] };
 		},
 		config: {
 			extra: { mult: steamGames, mult_mod: 1 },
 		},
-		atlas: "myd-main",
+		atlas: "myd-j-main",
 		pos: atlasJoker("main", "steam"),
 		rarity: JokerRarity.COMMON,
 		cost: 3,
@@ -243,17 +201,13 @@ export const initJokers = () => {
 	});
 	SMODS.Joker({
 		key: "dedotatedwam",
-		loc_txt: {
-			name: "Dedotated Wam",
-			text: ["{X:mult,C:white}X#1#{} Mult for every {C:green}GB{}", "of {C:attention}RAM{} in use", "{C:inactive}(Currently {X:mult,C:white}X#2#{C:inactive} Mult)"],
-		},
 		loc_vars(_, card) {
 			return { vars: [card.ability.extra.xmult_mod, card.ability.extra.xmult] };
 		},
 		config: {
 			extra: { xmult: 0, xmult_mod: 1 },
 		},
-		atlas: "myd-main",
+		atlas: "myd-j-main",
 		pos: atlasJoker("main", "dedotatedwam"),
 		rarity: JokerRarity.RARE,
 		cost: 3,
@@ -269,17 +223,13 @@ export const initJokers = () => {
 	});
 	SMODS.Joker({
 		key: "you",
-		loc_txt: {
-			name: username,
-			text: ["Pressed {C:attention}key combinations{} create", "the corresponding {C:cry_code}Code Card{}", "{C:inactive}({C:attention}#1#{C:inactive} uses remaining)"],
-		},
 		loc_vars(_, card) {
-			return { vars: [card.ability.extra.uses] };
+			return { vars: [card.ability.extra.uses, username] };
 		},
 		config: {
 			extra: { uses: 5, using: false },
 		},
-		atlas: "myd-main",
+		atlas: "myd-j-main",
 		pos: atlasJoker("main", "you"),
 		rarity: JokerRarity.COMMON,
 		cost: 6,
@@ -340,11 +290,7 @@ export const initJokers = () => {
 	});
 	SMODS.Joker({
 		key: "squarepacking",
-		loc_txt: {
-			name: "Square Packing",
-			text: ["Rounds Mult up to the", "nearest {C:attention}perfect square{}"],
-		},
-		atlas: "myd-main",
+		atlas: "myd-j-main",
 		pos: atlasJoker("main", "squarepacking"),
 		pixel_size: { w: 71, h:71 },
 		rarity: JokerRarity.COMMON,

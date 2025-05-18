@@ -186,14 +186,14 @@ declare interface ScoreModifiers {
 interface CalculateReturn extends ScoreModifiers {
 	message?: string;
 }
-
+interface LocalizedText {
+	name: string;
+	text: string[] | string[][];
+}
 interface JokerOptions<E extends CardAbility> {
 	key: string;
 	name?: string;
-	loc_txt: {
-		name: string;
-		text: string[];
-	};
+	loc_txt?: LocalizedText;
 	config?: E;
 	loc_vars?(info_queue: unknown, card: Card<E>): { vars: (string | number | undefined)[] };
 	calculate?(card: Card<E>, context: CalculateContext): CalculateReturn | void;
@@ -212,8 +212,9 @@ interface AtlasOptions {
 	px: number;
 	py: number;
 }
+type ConsumableSet = "Joker" | "Tarot" | "Spectral" | "Code" /* cryptid */ | "RCode" /* entropy */ | "Chemical";
 interface CreateCardOptions {
-	set: "Joker" | "Tarot" | "Spectral" | "Code" /* cryptid */ | "RCode" /* entropy */;
+	set: ConsumableSet;
 	area?: CardArea;
 	legendary?: boolean;
 	/**
@@ -230,11 +231,79 @@ interface CreateCardOptions {
 	seal?: unknown;
 	stickers?: unknown;
 }
+interface ObjectTypeOptions {
+	key: string;
+	default?: string;
+	cards?: Record<string, boolean>;
+	rarities?: { key: string; rate: number }[];
+}
+interface ConsumableTypeOptions extends ObjectTypeOptions {
+	primary_colour: RGBA;
+	secondary_colour: RGBA;
+	loc_txt?: {
+		/** used on card type badges */
+		name: string;
+		/** label for the button to access the collection */
+		collection: string;
+		/** description for undiscovered cards in the collection  */
+		undiscovered: {
+			name: string;
+			text: string[];
+		};
+	};
+	collection_rows?: number[];
+	shop_rate?: boolean;
+
+}
+interface UndiscoveredSpriteOptions {
+	key: string;
+	atlas: string;
+	pos: { x: number; y: number };
+	no_overlay?: boolean;
+	overlay_pos?: { x: number; y: number };
+}
+interface ConsumableOptions<E extends CardAbility, C> {
+	key: string;
+	set: ConsumableSet;
+	loc_txt?: LocalizedText;
+	atlas?: string;
+	pos?: { x: number; y: number };
+	config?: C;
+	unlocked?: boolean;
+	discovered?: boolean;
+	no_collection?: boolean;
+	prefix_config?: unknown;
+	dependencies?: unknown;
+	display_size?: unknown;
+	pixel_size?: { w: number; h: number };
+	cost?: number;
+	pools?: Record<string, boolean>;
+	hidden?: boolean;
+	calculate?(card: Card<E, C>, context: CalculateContext): CalculateReturn | void;
+	loc_vars?(info_queue: unknown, card: Card<E, C>): { vars: (string | number | undefined)[] };
+	use?(card: Card<E, C>, area: CardArea, copier: never): void;
+	can_use?(card: Card<E, C>): boolean;
+	keep_on_use?(card: Card<E, C>): boolean;
+	set_ability?(card: Card<E, C>, initial: unknown, delay_sprites: unknown): void;
+	add_to_deck?(card: Card<E, C>, from_debuff: boolean): void;
+	remove_from_deck?(card: Card<E, C>, from_debuff: boolean): void;
+	in_pool?(args: unknown): LuaMultiReturn<[boolean, {allow_duplicates: boolean}]>;
+	update?(card: Card<E, C>, dt: number): void;
+	set_sprites?(card: Card<E, C>, front: unknown): void;
+	load?(card: Card<E, C>, card_table: unknown, other_card: Card): void;
+	check_for_unlock?(args: unknown): boolean;
+	set_badges?(card: Card, badges: Badge[]): void;
+	set_card_type_badge?(card: Card, badges: Badge[]): void;
+	draw?(card: Card<E, C>, layer: unknown): void;
+}
 type Enhancement = "m_bonus" | "m_mult" | "m_wild" | "m_glass" | "m_steel" | "m_stone" | "m_gold" | "m_lucky";
 
 declare const SMODS: {
 	Joker: <E extends CardAbility>(this: void, opts: JokerOptions<E>) => void;
 	Atlas: (this: void, opts: AtlasOptions) => void;
+	Consumable: <E extends CardAbility, C>(this: void, opts: ConsumableOptions<E, C>) => void;
+	ConsumableType: (this: void, opts: ConsumableTypeOptions) => void;
+	UndiscoveredSprite: (this: void, opts: UndiscoveredSpriteOptions) => void;
 	create_card: (this: void, opts: CreateCardOptions) => Card;
 	add_card: (this: void, opts: CreateCardOptions) => void;
 	has_enhancement(this: void, card: Card, enhancement: Enhancement): boolean;

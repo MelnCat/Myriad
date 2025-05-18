@@ -31,7 +31,7 @@ interface CardAbility {
 	extra: ScoreModifiers
 }
 
-declare class Card<E extends CardAbility = CardAbility> extends Sprite {
+declare class Card<E extends CardAbility = CardAbility, C = {}> extends Sprite {
 	playing_card: any;
 	sort_id: number;
 	back: string;
@@ -93,7 +93,7 @@ declare class Card<E extends CardAbility = CardAbility> extends Sprite {
 		center: {
 			key: string;
 		}
-	}
+	} & C
 
 
 	init(X: number, Y: number, W: number, H: number, card: any, center: any, params?: any): void;

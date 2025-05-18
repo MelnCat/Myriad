@@ -16,3 +16,8 @@ declare const card_eval_status_text: (
 declare const pseudorandom: (this: void, key: string) => number;
 declare let mult: number;
 declare let chips: number;
+declare const HEX: (this: void, hex: string) => RGBA
+declare interface Badge {
+	____: "badge";
+}
+declare const create_badge: (this: void, text: string, bgColor?: RGBA, textColor?: RGBA, scaling?: number) => Badge;

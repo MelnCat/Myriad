@@ -6,6 +6,9 @@ interface AtlasData {
 		jokers: {
 			main: Record<string, { x: number; y: number }>;
 		};
+		consumables: {
+			chemicals: Record<string, { x: number; y: number }>;
+		};
 	};
 }
 export const atlasData: AtlasData = {
