@@ -6,21 +6,34 @@ type Methods<T> = {
 type PlainMethods<T> = {
 	[K in keyof T]: NonNullable<T[K]> extends (this: void, ...args: any[]) => any ? K : never;
 }[keyof T];
+type NReturnType<T extends (...args: any) => any | undefined | null> = T extends (...args: any) => infer R ? R : any
+
 export const hook = <O, K extends Methods<O>>(obj: O, key: K) => {
 	const old = obj[key] as (this: O) => void;
-	let before = () => {};
-	let after = () => {};
+	let before = (...args: any) => {};
+	let after = (...args: any) => {};
 	obj[key] = function (this: O, ...args: Parameters<typeof old>) {
-		before.call(this, ...args);
-		old?.call(this, ...args);
-		after.call(this, ...args);
+		let earlyReturn = false;
+		let value: unknown = null;
+		before.call(this, ...args, (v: unknown) => { value = v; earlyReturn = true });
+		if (earlyReturn) return value;
+		value = old?.call(this, ...args);
+		after.call(this, ...args, value, (v: unknown) => { value = v; });
+		return value;
 	} as O[K];
 	return {
-		before(cb: (this: O, ...args: NonNullable<O[K]> extends (...args: any) => any ? Parameters<NonNullable<O[K]>> : []) => void) {
+		before(
+			cb: (
+				this: O,
+				...args: NonNullable<O[K]> extends (...args: infer T) => infer U
+					? [...T, earlyReturn: (retValue: U) => void]
+					: []
+			) => void
+		) {
 			before = cb as () => void;
 			return this;
 		},
-		after(cb: (this: O, ...args: NonNullable<O[K]> extends (...args: any) => any ? Parameters<NonNullable<O[K]>> : []) => void) {
+		after(cb: (this: O, ...args: NonNullable<O[K]> extends (...args: infer T) => infer U ? [...T, U, setReturn: (retValue: U) => void] : []) => void) {
 			after = cb as () => void;
 			return this;
 		},
@@ -28,19 +41,30 @@ export const hook = <O, K extends Methods<O>>(obj: O, key: K) => {
 };
 export const hookPlain = <O, K extends PlainMethods<O>>(obj: O, key: K) => {
 	const old = obj[key] as (this: void) => void;
-	let before: (this: void) => void = () => {};
-	let after: (this: void) => void = () => {};
+	let before: (this: void, ...args: any) => void = () => {};
+	let after: (this: void, ...args: any) => void = () => {};
 	obj[key] = function (this: void, ...args: Parameters<typeof old>) {
-		before(...args);
-		old?.(...args);
-		before(...args);
+		let earlyReturn = false;
+		let value: unknown = null;
+		before(...args, (v: unknown) => { value = v; earlyReturn = true; });
+		if (earlyReturn) return value;
+		value = old?.(...args);
+		after(...args, value, (v: unknown) => { value = v; });
+		return value;
 	} as O[K];
 	return {
-		before(cb: (this: void, ...args: NonNullable<O[K]> extends (...args: any) => any ? Parameters<NonNullable<O[K]>> : []) => void) {
+		before(
+			cb: (
+				this: void,
+				...args: NonNullable<O[K]> extends (...args: infer T) => infer U
+					? [...T, earlyReturn: (retValue: U) => void]
+					: []
+			) => void
+		) {
 			before = cb;
 			return this;
 		},
-		after(cb: (this: void, ...args: NonNullable<O[K]> extends (...args: any) => any ? Parameters<NonNullable<O[K]>> : []) => void) {
+		after(cb: (this: void, ...args: NonNullable<O[K]> extends (...args: infer T) => infer U ? [...T, U, setReturn: (retValue: U) => void] : []) => void) {
 			after = cb;
 			return this;
 		},
@@ -87,14 +111,28 @@ export const atlasPos = <T extends AtlasCategory>(category: T, key: keyof (typeo
 	(atlasData.pos[category][key] as Record<string, { x: number; y: number }>)[name];
 export const atlasJoker = (key: keyof (typeof atlasData)["pos"]["jokers"], name: string) => atlasPos("jokers", key, name);
 export const atlasConsumable = (key: keyof (typeof atlasData)["pos"]["consumables"], name: string) => atlasPos("consumables", key, name);
+export const atlasMisc = (key: keyof (typeof atlasData)["pos"]["misc"], name: string) => atlasPos("misc", key, name);
 export const findJoker = (key: string) => G?.jokers?.cards?.find(x => x.config.center.key === prefixedJoker(key));
 
 const prefixes = {
 	Joker: "j",
 	Chemical: "c",
 };
-export const localizationEntry = (entry: { descriptions: Record<"Joker" | "Chemical", Record<string, LocalizedText>> }) => ({
-	descriptions: Object.fromEntries(Object.entries(entry.descriptions).map(([category, obj]) => [category, 
-		Object.fromEntries(Object.entries(obj).map(x => [`${prefixes[category as "Joker"]}_myd_${x[0]}`, x[1]]))
-	]))
-})
+export const localizationEntry = (entry: {
+	descriptions: Record<"Joker" | "Chemical" | "Other", Record<string, LocalizedText>>;
+	misc: { dictionary: Record<string, string> };
+}) => ({
+	descriptions: Object.fromEntries(
+		Object.entries(entry.descriptions).map(([category, obj]) => [
+			category,
+			Object.fromEntries(
+				Object.entries(obj).map(x => [
+					category === "Other" ? `${x[0].split("_")[0]}_myd_${x[0].split("_").slice(1).join("_")}` : `${prefixes[category as "Joker"]}_myd_${x[0]}`,
+					x[1],
+				])
+			),
+		])
+	),
+	misc: entry.misc,
+});
+export const unprefix = (key: string) => key.split("_").slice(2).join("_")

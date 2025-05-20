@@ -9,6 +9,9 @@ interface AtlasData {
 		consumables: {
 			chemicals: Record<string, { x: number; y: number }>;
 		};
+		misc: {
+			boosters: Record<string, { x: number; y: number }>;
+		};
 	};
 }
 export const atlasData: AtlasData = {

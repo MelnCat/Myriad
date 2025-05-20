@@ -9,11 +9,13 @@
 		"types": ["lua-types/5.1", "love-typescript-definitions", "@typescript-to-lua/language-extensions"],
 		"outDir": "dist/",
 		"rootDir": "src/",
-		"esModuleInterop": true
+		"esModuleInterop": true,
+        "jsx": "react",
+        "jsxFactory": "MYRIAD_INTERNAL_IF_YOU_USE_THIS_YOU_ARE_FIRED.createElement"
 	},
 	"tstl": {
 		"luaTarget": "5.1",
 		"sourceMapTraceback": true
 	},
-	"include": ["src/**/*.ts"]
+	"include": ["src/**/*.ts", "src/**/*.tsx"]
 }

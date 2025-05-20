@@ -19,17 +19,57 @@ declare interface BaseColors {
 }
 declare type Colors = BaseColors & {
 	SUITS: Record<keyof Suits, Suits & RGBA>;
+	UI: Record<
+		`${"TEXT" | "BACKGROUND"}_${"LIGHT" | "DARK" | "INACTIVE"}` | "BACKGROUND_WHITE" | `${"OUTLINE" | "TRANSPARENT"}_${"LIGHT" | "DARK"}` | "OUTLINE_LIGHT_TRANS" | "HOVER",
+		RGBA
+	>;
+	DYN_UI: {
+		MAIN: RGBA
+	}
+	SET: Record<ConsumableSet, RGBA>;
 };
 declare type GameState = symbol;
+interface UIDef {
+	use_and_sell_buttons(this: void, card: Card): UINode;
+}
+declare interface UINodeConfig {
+	ref_table: Card;
+	r: number;
+	padding: number;
+	align: "bm";
+	minw: number;
+	minh: number;
+	maxw: number;
+	hover: boolean;
+	shadow: boolean;
+	colour: RGBA;
+	one_press: boolean;
+	button: string;
+	func: string;
+	text: string;
+	scale: number;
+}
+declare interface UINode {
+	n: Globals["UIT"][keyof Globals["UIT"]];
+	config?: Partial<UINodeConfig>;
+	nodes?: UINode[];
+}
 declare interface Globals {
 	readonly play: CardArea;
 	readonly jokers: CardArea;
 	readonly hand: CardArea;
 	readonly deck: CardArea;
 	readonly consumeables: CardArea;
+	readonly pack_cards: CardArea;
 	playing_cards: Card[];
 	E_MANAGER: EventManager;
 	F_NO_ERROR_HAND: boolean;
+	CONTROLLER: {
+		hovering: {
+			target?: Card;
+		}
+	}
+	UIDEF: UIDef;
 	C: Colors;
 	ARGS: {
 		LOC_COLOURS: {
@@ -41,6 +81,27 @@ declare interface Globals {
 		probabilities: {
 			normal: number;
 		};
+	};
+	/** UI Types */
+	UIT: {
+		/** text */
+		T: 1;
+		/** box */
+		B: 2;
+		/** column */
+		C: 3;
+		/** row */
+		R: 4;
+		/** object (Node) */
+		O: 5;
+		/** root */
+		ROOT: 7;
+		/** slider */
+		S: 8;
+		/** text input box */
+		I: 9;
+		/** default padding */
+		padding: 0;
 	};
 	STATE: GameState;
 	STATES: {
@@ -190,11 +251,11 @@ interface LocalizedText {
 	name: string;
 	text: string[] | string[][];
 }
-interface JokerOptions<E extends CardAbility> {
+interface JokerOptions<EX, E extends CardAbility = CardAbility & EX> {
 	key: string;
 	name?: string;
 	loc_txt?: LocalizedText;
-	config?: E;
+	config?: EX;
 	loc_vars?(info_queue: unknown, card: Card<E>): { vars: (string | number | undefined)[] };
 	calculate?(card: Card<E>, context: CalculateContext): CalculateReturn | void;
 	update?(card: Card<E>, dt: number): void;
@@ -253,7 +314,6 @@ interface ConsumableTypeOptions extends ObjectTypeOptions {
 	};
 	collection_rows?: number[];
 	shop_rate?: boolean;
-
 }
 interface UndiscoveredSpriteOptions {
 	key: string;
@@ -287,7 +347,7 @@ interface ConsumableOptions<E extends CardAbility, C> {
 	set_ability?(card: Card<E, C>, initial: unknown, delay_sprites: unknown): void;
 	add_to_deck?(card: Card<E, C>, from_debuff: boolean): void;
 	remove_from_deck?(card: Card<E, C>, from_debuff: boolean): void;
-	in_pool?(args: unknown): LuaMultiReturn<[boolean, {allow_duplicates: boolean}]>;
+	in_pool?(args: unknown): LuaMultiReturn<[boolean, { allow_duplicates: boolean }]>;
 	update?(card: Card<E, C>, dt: number): void;
 	set_sprites?(card: Card<E, C>, front: unknown): void;
 	load?(card: Card<E, C>, card_table: unknown, other_card: Card): void;
@@ -296,14 +356,41 @@ interface ConsumableOptions<E extends CardAbility, C> {
 	set_card_type_badge?(card: Card, badges: Badge[]): void;
 	draw?(card: Card<E, C>, layer: unknown): void;
 }
+type KeysOfType<T, U> = {
+	[K in keyof T]: T[K] extends U ? K : never;
+}[keyof T];
+interface BoosterOptions {
+	key: string;
+	loc_txt?: LocalizedText;
+	atlas?: string;
+	pos?: { x: number; y: number };
+	config?: { extra: number; choose: number };
+	// ...
+	cost?: number;
+	weight?: number;
+	draw_hand?: boolean;
+	kind?: string;
+	group_key?: string;
+	select_card?: KeysOfType<Globals, CardArea>;
+	create_card?(card: Card, index: number): Card | Parameters<(typeof SMODS)["create_card"]>;
+	loc_vars?(info_queue: unknown, card: Card<CardAbility & { choose: number; extra: number }, { choose: number; extra: number }>): { vars: (string | number | undefined)[] };
+	ease_background_colour(): void;
+}
+interface ShaderOptions {
+	key: string;
+	path: string;
+}
 type Enhancement = "m_bonus" | "m_mult" | "m_wild" | "m_glass" | "m_steel" | "m_stone" | "m_gold" | "m_lucky";
 
 declare const SMODS: {
-	Joker: <E extends CardAbility>(this: void, opts: JokerOptions<E>) => void;
+	Joker: <E>(this: void, opts: JokerOptions<E>) => void;
 	Atlas: (this: void, opts: AtlasOptions) => void;
 	Consumable: <E extends CardAbility, C>(this: void, opts: ConsumableOptions<E, C>) => void;
 	ConsumableType: (this: void, opts: ConsumableTypeOptions) => void;
 	UndiscoveredSprite: (this: void, opts: UndiscoveredSpriteOptions) => void;
+	Booster: (this: void, opts: BoosterOptions) => void;
+	Shader: (this: void, opts: ShaderOptions) => void;
+	//
 	create_card: (this: void, opts: CreateCardOptions) => Card;
 	add_card: (this: void, opts: CreateCardOptions) => void;
 	has_enhancement(this: void, card: Card, enhancement: Enhancement): boolean;

@@ -3,6 +3,16 @@ import { initJokers } from "./items/jokers/jokers";
 import { updateTemperature } from "./util/arizona";
 import { findJoker, hook, hookPlain, hsv2rgb, prefixedJoker, scheduleEvent } from "./util/utils";
 
+MYRIAD_INTERNAL_IF_YOU_USE_THIS_YOU_ARE_FIRED.createElement = (type, props, ...children) => {
+	const stringContents = children.length === 1 && typeof children[0] === "string" ? children[0] : null
+	const value = {
+		n: { root: G.UIT.ROOT, row: G.UIT.R, text: G.UIT.T }[type as "root"],
+		config: {...props, text: children.length === 1 && typeof children[0] === "string" ? children[0] : props?.text},
+		nodes: stringContents ? [] : children
+	} satisfies UINode;
+	return value;
+};
+
 SMODS.Atlas({
 	key: "myd-j-main",
 	path: "jokers/main.png",
@@ -17,7 +27,20 @@ SMODS.Atlas({
 	py: 95,
 });
 
+SMODS.Atlas({
+	key: "myd-p-boosters",
+	path: "misc/boosters.png",
+	px: 71,
+	py: 95,
+});
+
+SMODS.Shader({
+	key: "outline",
+	path: "outline.fs"
+})
+
 G.C.FISH = [0, 0, 0, 1];
+G.C.MYD_CHEMICAL = HEX("95c5c9");
 initJokers();
 initChemicals();
 hook(CardArea, "shuffle").after(function () {
@@ -39,6 +62,7 @@ hook(Game, "update").before(() => {
 	G.C.FISH[2] = rainbow[2];
 	if (!init && G.ARGS.LOC_COLOURS !== undefined) {
 		G.ARGS.LOC_COLOURS.fish = G.C.FISH;
+		G.ARGS.LOC_COLOURS.myd_chemical = G.C.MYD_CHEMICAL;
 		init = true;
 	}
 });

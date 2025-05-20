@@ -71,6 +71,30 @@ export = localizationEntry({
 				name: "Water",
 				text: ["Todo whatever this is", "{C:attention}supposed{} to do"],
 			},
+			carbon: {
+				name: "Carbon",
+				text: ["Todo whatever this is", "{C:attention}supposed{} to do"],
+			},
+			methane: {
+				name: "Methane",
+				text: ["Todo whatever this is", "{C:attention}supposed{} to do"],
+			},
+			carbondioxide: {
+				name: "Carbon Dioxide",
+				text: ["Todo whatever this is", "{C:attention}supposed{} to do"],
+			},
+		},
+		Other: {
+			p_reagent_pack_1: {
+				name: "Reagent Pack",
+
+				text: ["Choose {C:attention}#1#{} of up to", "{C:attention}#2# {C:myd_chemical}Chemical{} card#<s>2#"],
+			},
+		},
+	},
+	misc: {
+		dictionary: {
+			k_myd_reagent_pack: "Reagent Pack",
 		},
 	},
 });

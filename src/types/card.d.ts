@@ -13,25 +13,42 @@ declare class Sprite {
 	states: {
 		drag: {
 			is: boolean;
-		}
-	}
+		};
+	};
 	pinch: {
 		x: boolean;
 		y: boolean;
-	}
+	};
 	scale: any;
 	role: any;
 	parent: any;
 	layered_parallax: any;
 	set_sprite_pos(pos: any): void;
+	draw_shader(
+		_shader: string,
+		_shadow_height?: number,
+		_send?: number[],
+		_no_tilt?: boolean,
+		other_obj?: unknown,
+		ms?: unknown,
+		mr?: unknown,
+		mx?: unknown,
+		my?: unknown,
+		custom_shader?: unknown,
+		tilt_shadow?: unknown
+	): void;
 	remove(): void;
 }
 
 interface CardAbility {
-	extra: ScoreModifiers
+	extra: ScoreModifiers;
+	set: ConsumableSet;
 }
 
-declare class Card<E extends CardAbility = CardAbility, C = {}> extends Sprite {
+declare class Card<E = unknown, C = unknown> extends Sprite {
+	ARGS: {
+		send_to_shader: number[];
+	};
 	playing_card: any;
 	sort_id: number;
 	back: string;
@@ -55,7 +72,7 @@ declare class Card<E extends CardAbility = CardAbility, C = {}> extends Sprite {
 	facing: string;
 	sprite_facing: string;
 	flipping: any;
-	area: any;
+	area: CardArea;
 	highlighted: boolean;
 	click_timeout: number;
 	T: {
@@ -68,7 +85,7 @@ declare class Card<E extends CardAbility = CardAbility, C = {}> extends Sprite {
 	};
 	debuff: boolean;
 	added_to_deck: any;
-	ability: E & { name: string; };
+	ability: E & { name: string } & CardAbility;
 	base: any;
 	seal: any;
 	sticker: any;
@@ -92,9 +109,8 @@ declare class Card<E extends CardAbility = CardAbility, C = {}> extends Sprite {
 	config: {
 		center: {
 			key: string;
-		}
-	} & C
-
+		};
+	} & C;
 
 	init(X: number, Y: number, W: number, H: number, card: any, center: any, params?: any): void;
 	update_alert(): void;
@@ -147,7 +163,7 @@ declare class Card<E extends CardAbility = CardAbility, C = {}> extends Sprite {
 	calculate_rental(): void;
 	calculate_perishable(): void;
 	calculate_joker(context?: any): any;
-	juice_up(a: number, b: number): void;
+	juice_up(scale?: number, rot_amount?: number): void;
 	remove(): void;
 	is_suit(suit: Suits): boolean;
 }

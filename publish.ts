@@ -74,7 +74,7 @@ for (const file of luaFiles) {
 	const replaced = (() => {
 		let str = content;
 		str = str.replace(/require\("(.+?)"\)/g, (_, a) =>
-			["ffi", "SMODS.https"].includes(a) ? _ : `MYRIAD_INTERNAL_IF_YOU_USE_THIS_YOU_ARE_FIRED("${a.replaceAll(".", "/")}.lua")`
+			["ffi", "SMODS.https"].includes(a) ? _ : `MYRIAD_INTERNAL_IF_YOU_USE_THIS_YOU_ARE_FIRED.require("${a.replaceAll(".", "/")}.lua")`
 		);
 		if (file.endsWith("atlas.lua")) str = str.replace(`"<data>"`, JSON.stringify(JSON.stringify(atlases)));
 		return str;
@@ -85,7 +85,8 @@ for (const file of luaFiles) {
 		basename(file) === "index.lua"
 			? /* lua */ `\
 local MYRIAD_FILEMAP = {}
-_G.MYRIAD_INTERNAL_IF_YOU_USE_THIS_YOU_ARE_FIRED = function(name)
+_G.MYRIAD_INTERNAL_IF_YOU_USE_THIS_YOU_ARE_FIRED = {}
+_G.MYRIAD_INTERNAL_IF_YOU_USE_THIS_YOU_ARE_FIRED.require = function(name)
     if MYRIAD_FILEMAP[name] ~= nil then
         return MYRIAD_FILEMAP[name]
     end
