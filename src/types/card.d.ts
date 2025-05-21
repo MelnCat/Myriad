@@ -42,9 +42,13 @@ declare class Sprite {
 
 interface CardAbility {
 	extra: ScoreModifiers;
-	set: ConsumableSet;
+	set: ObjectType;
 }
-
+declare interface CardBase {
+	suit: Suits;
+	id: number;
+	value: number;
+}
 declare class Card<E = unknown, C = unknown> extends Sprite {
 	ARGS: {
 		send_to_shader: number[];
@@ -85,7 +89,7 @@ declare class Card<E = unknown, C = unknown> extends Sprite {
 	};
 	debuff: boolean;
 	added_to_deck: any;
-	ability: E & { name: string } & CardAbility;
+	ability: E & { name: string } & CardAbility & C;
 	base: any;
 	seal: any;
 	sticker: any;
@@ -96,6 +100,8 @@ declare class Card<E = unknown, C = unknown> extends Sprite {
 		back: Sprite;
 		center: Sprite;
 		floating_sprite: Sprite;
+		price?: Sprite;
+		buy_button?: Sprite;
 		alert: UIBox;
 		particles: any;
 	};
@@ -166,4 +172,6 @@ declare class Card<E = unknown, C = unknown> extends Sprite {
 	juice_up(scale?: number, rot_amount?: number): void;
 	remove(): void;
 	is_suit(suit: Suits): boolean;
+	flip(): void;
+	_MYD?: any;
 }

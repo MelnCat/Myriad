@@ -61,7 +61,7 @@ export = localizationEntry({
 		Chemical: {
 			hydrogen: {
 				name: "Hydrogen",
-				text: ["Todo whatever this is", "{C:attention}supposed{} to do"],
+				text: ["Decreases rank of", "up to {C:attention}#1#{} selected", "cards by {C:attention}#2#"],
 			},
 			oxygen: {
 				name: "Oxygen",
@@ -83,6 +83,30 @@ export = localizationEntry({
 				name: "Carbon Dioxide",
 				text: ["Todo whatever this is", "{C:attention}supposed{} to do"],
 			},
+			chlorine: {
+				name: "Chlorine",
+				text: ["Todo whatever this is", "{C:attention}supposed{} to do"],
+			},
+			hydrochloricacid: {
+				name: "Hydrochloric Acid",
+				text: ["Todo whatever this is", "{C:attention}supposed{} to do"],
+			},
+			hypochlorousacid: {
+				name: "Hypochlorous Acid",
+				text: ["Todo whatever this is", "{C:attention}supposed{} to do"],
+			},
+			methamphetamine: {
+				name: "Methamphetamine",
+				text: ["Todo whatever this is", "{C:attention}supposed{} to do"],
+			},
+			nitrogen: {
+				name: "Nitrogen",
+				text: ["Todo whatever this is", "{C:attention}supposed{} to do"],
+			},
+			ammonia: {
+				name: "Ammonia",
+				text: ["Todo whatever this is", "{C:attention}supposed{} to do"],
+			},
 		},
 		Other: {
 			p_reagent_pack_1: {
@@ -95,6 +119,13 @@ export = localizationEntry({
 	misc: {
 		dictionary: {
 			k_myd_reagent_pack: "Reagent Pack",
+			k_myd_simple: "Element",
+			k_myd_complex: "Compound",
+			b_react: "REACT"
 		},
+		labels: {
+			k_myd_simple: "Element",
+			k_myd_complex: "Compound"
+		}
 	},
 });

@@ -1,7 +1,7 @@
 declare const Game: {
 	update(delta: number): void;
 };
-declare const play_sound: (this: void, sound: string) => void;
+declare const play_sound: (this: void, sound: string, volume?: number, pitch?: number) => void;
 
 declare const localize: (this: void, opts: { type: "variable"; key: string; vars: (string | number)[] } | string) => string;
 declare const card_eval_status_text: (
@@ -34,3 +34,4 @@ declare const create_card: (
 ) => Card;
 declare const ease_colour: (this: void, old_colour: RGBA, new_colour: RGBA, delay?: number) => void;
 declare const ease_background_colour: (this: void, opts: { new_colour: RGBA; special_colour: RGBA; contrast: number }) => void;
+declare const delay: (this: void, seconds: number) => void;

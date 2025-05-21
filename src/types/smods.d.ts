@@ -1,7 +1,9 @@
 declare interface CardArea {
 	cards: Card[];
+	highlighted: Card[];
 	remove_card(card: Card): void;
 	shuffle(seed: string): void;
+	unhighlight_all(): void;
 	config: {
 		card_limit: number;
 	};
@@ -24,9 +26,9 @@ declare type Colors = BaseColors & {
 		RGBA
 	>;
 	DYN_UI: {
-		MAIN: RGBA
-	}
-	SET: Record<ConsumableSet, RGBA>;
+		MAIN: RGBA;
+	};
+	SET: Record<ObjectType, RGBA>;
 };
 declare type GameState = symbol;
 interface UIDef {
@@ -64,10 +66,15 @@ declare interface Globals {
 	playing_cards: Card[];
 	E_MANAGER: EventManager;
 	F_NO_ERROR_HAND: boolean;
+	P_CARDS: Record<string, CardBase>;
 	CONTROLLER: {
 		hovering: {
 			target?: Card;
-		}
+		};
+	};
+	FUNCS: {
+		react_card(this: void, e: { config: { ref_table: Card } }): void
+		end_consumeable(this: void, something: null, delay: number): void
 	}
 	UIDEF: UIDef;
 	C: Colors;
@@ -78,6 +85,7 @@ declare interface Globals {
 	};
 	GAME: {
 		joker_buffer: number;
+		pack_choices: number;
 		probabilities: {
 			normal: number;
 		};
@@ -273,15 +281,16 @@ interface AtlasOptions {
 	px: number;
 	py: number;
 }
-type ConsumableSet = "Joker" | "Tarot" | "Spectral" | "Code" /* cryptid */ | "RCode" /* entropy */ | "Chemical";
-interface CreateCardOptions {
-	set: ConsumableSet;
+type Rarity = number | "myd_simple" | "myd_complex";
+type ObjectType = "Joker" | "Tarot" | "Spectral" | "Code" /* cryptid */ | "RCode" /* entropy */ | "Chemical";
+interface CreateCardOptions<T extends ObjectType> {
+	set: T;
 	area?: CardArea;
 	legendary?: boolean;
 	/**
 	 * "Under vanilla conditions, values up to 0.7 indicate Common rarity, values above 0.7 and up to 0.95 indicate Uncommon rarity, and values above 0.95 indicate Rare rarity."
 	 */
-	rarity?: number;
+	rarity?: T extends "Joker" ? number : Rarity;
 	skip_materialize?: boolean;
 	soulable?: boolean;
 	key?: string;
@@ -296,7 +305,7 @@ interface ObjectTypeOptions {
 	key: string;
 	default?: string;
 	cards?: Record<string, boolean>;
-	rarities?: { key: string; rate: number }[];
+	rarities?: { key: string; weight: number }[]; // bro "rate" isn't even real its "weight" despite the docs
 }
 interface ConsumableTypeOptions extends ObjectTypeOptions {
 	primary_colour: RGBA;
@@ -324,7 +333,7 @@ interface UndiscoveredSpriteOptions {
 }
 interface ConsumableOptions<E extends CardAbility, C> {
 	key: string;
-	set: ConsumableSet;
+	set: ObjectType;
 	loc_txt?: LocalizedText;
 	atlas?: string;
 	pos?: { x: number; y: number };
@@ -337,8 +346,9 @@ interface ConsumableOptions<E extends CardAbility, C> {
 	display_size?: unknown;
 	pixel_size?: { w: number; h: number };
 	cost?: number;
-	pools?: Record<string, boolean>;
+	pools?: Partial<Record<ObjectType, boolean>>;
 	hidden?: boolean;
+	rarity?: string;
 	calculate?(card: Card<E, C>, context: CalculateContext): CalculateReturn | void;
 	loc_vars?(info_queue: unknown, card: Card<E, C>): { vars: (string | number | undefined)[] };
 	use?(card: Card<E, C>, area: CardArea, copier: never): void;
@@ -376,6 +386,14 @@ interface BoosterOptions {
 	loc_vars?(info_queue: unknown, card: Card<CardAbility & { choose: number; extra: number }, { choose: number; extra: number }>): { vars: (string | number | undefined)[] };
 	ease_background_colour(): void;
 }
+interface RarityOptions {
+	key: string;
+	loc_txt?: LocalizedText;
+	pools?: Partial<Record<ObjectType, boolean | { rate: number }>>;
+	badge_colour?: RGBA;
+	default_weight?: number;
+	get_weight?(weight: number, type: ObjectType): number;
+}
 interface ShaderOptions {
 	key: string;
 	path: string;
@@ -390,10 +408,13 @@ declare const SMODS: {
 	UndiscoveredSprite: (this: void, opts: UndiscoveredSpriteOptions) => void;
 	Booster: (this: void, opts: BoosterOptions) => void;
 	Shader: (this: void, opts: ShaderOptions) => void;
+	Rarity: (this: void, opts: RarityOptions) => void;
 	//
-	create_card: (this: void, opts: CreateCardOptions) => Card;
-	add_card: (this: void, opts: CreateCardOptions) => void;
+	create_card: <T extends ObjectType>(this: void, opts: CreateCardOptions<T>) => Card;
+	add_card: <T extends ObjectType>(this: void, opts: CreateCardOptions<T>) => void;
 	has_enhancement(this: void, card: Card, enhancement: Enhancement): boolean;
 	get_enhancements(this: void, card: Card, extra_only?: boolean): Record<Enhancement, boolean>;
 	load_file(this: void, path: string): unknown;
+	change_base(this: void, card: Card, suit?: Suits, rank?: string): void;
+	modify_rank(this: void, card: Card, amount: number): LuaMultiReturn<[null, string] | [Card, null]>;
 };

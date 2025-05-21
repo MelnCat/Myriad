@@ -6,7 +6,7 @@ type Methods<T> = {
 type PlainMethods<T> = {
 	[K in keyof T]: NonNullable<T[K]> extends (this: void, ...args: any[]) => any ? K : never;
 }[keyof T];
-type NReturnType<T extends (...args: any) => any | undefined | null> = T extends (...args: any) => infer R ? R : any
+type NReturnType<T extends (...args: any) => any | undefined | null> = T extends (...args: any) => infer R ? R : any;
 
 export const hook = <O, K extends Methods<O>>(obj: O, key: K) => {
 	const old = obj[key] as (this: O) => void;
@@ -15,21 +15,19 @@ export const hook = <O, K extends Methods<O>>(obj: O, key: K) => {
 	obj[key] = function (this: O, ...args: Parameters<typeof old>) {
 		let earlyReturn = false;
 		let value: unknown = null;
-		before.call(this, ...args, (v: unknown) => { value = v; earlyReturn = true });
+		before.call(this, ...args, (v: unknown) => {
+			value = v;
+			earlyReturn = true;
+		});
 		if (earlyReturn) return value;
 		value = old?.call(this, ...args);
-		after.call(this, ...args, value, (v: unknown) => { value = v; });
+		after.call(this, ...args, value, (v: unknown) => {
+			value = v;
+		});
 		return value;
 	} as O[K];
 	return {
-		before(
-			cb: (
-				this: O,
-				...args: NonNullable<O[K]> extends (...args: infer T) => infer U
-					? [...T, earlyReturn: (retValue: U) => void]
-					: []
-			) => void
-		) {
+		before(cb: (this: O, ...args: NonNullable<O[K]> extends (...args: infer T) => infer U ? [...T, earlyReturn: (retValue: U) => void] : []) => void) {
 			before = cb as () => void;
 			return this;
 		},
@@ -46,21 +44,19 @@ export const hookPlain = <O, K extends PlainMethods<O>>(obj: O, key: K) => {
 	obj[key] = function (this: void, ...args: Parameters<typeof old>) {
 		let earlyReturn = false;
 		let value: unknown = null;
-		before(...args, (v: unknown) => { value = v; earlyReturn = true; });
+		before(...args, (v: unknown) => {
+			value = v;
+			earlyReturn = true;
+		});
 		if (earlyReturn) return value;
 		value = old?.(...args);
-		after(...args, value, (v: unknown) => { value = v; });
+		after(...args, value, (v: unknown) => {
+			value = v;
+		});
 		return value;
 	} as O[K];
 	return {
-		before(
-			cb: (
-				this: void,
-				...args: NonNullable<O[K]> extends (...args: infer T) => infer U
-					? [...T, earlyReturn: (retValue: U) => void]
-					: []
-			) => void
-		) {
+		before(cb: (this: void, ...args: NonNullable<O[K]> extends (...args: infer T) => infer U ? [...T, earlyReturn: (retValue: U) => void] : []) => void) {
 			before = cb;
 			return this;
 		},
@@ -83,6 +79,54 @@ export const scheduleEvent = (func: () => boolean, opts?: Partial<EventObject>) 
 			...opts,
 		})
 	);
+};
+export const scheduleEventAfter = (func: () => void, time: number) => {
+	G.E_MANAGER.add_event(
+		Event({
+			func: () => {
+				func();
+				return true;
+			},
+			trigger: "after",
+			delay: time,
+		})
+	);
+};
+
+export const runSelectedTarotEffects = (card: Card, cb: (c: Card) => void) => {
+	scheduleEventAfter(() => {
+		play_sound("tarot1");
+		card.juice_up(0.3, 0.5);
+		return true;
+	}, 0.4);
+	let i = 0;
+	for (const c of G.hand.highlighted) {
+		scheduleEventAfter(() => {
+			c.flip();
+			play_sound("card1", 1.15 - ((i - 0.999) / (G.hand.highlighted.length - 0.998)) * 0.3);
+			c.juice_up(0.3, 0.3);
+			return true;
+		}, 0.15);
+	}
+	delay(0.2);
+	for (const c of G.hand.highlighted) {
+		scheduleEventAfter(() => {
+			cb(c);
+		}, 0.1);
+	}
+	for (const c of G.hand.highlighted) {
+		scheduleEventAfter(() => {
+			c.flip();
+			play_sound("tarot2", 0.85 + ((i - 0.999) / (G.hand.highlighted.length - 0.998)) * 0.3, 0.6);
+			c.juice_up(0.3, 0.3);
+			return true;
+		}, 0.15);
+	}
+	scheduleEventAfter(() => {
+		G.hand.unhighlight_all();
+		return true;
+	}, 0.2);
+	delay(0.5);
 };
 
 export const prefixedJoker = (key: string) => `j_myd_${key}`;
@@ -120,7 +164,7 @@ const prefixes = {
 };
 export const localizationEntry = (entry: {
 	descriptions: Record<"Joker" | "Chemical" | "Other", Record<string, LocalizedText>>;
-	misc: { dictionary: Record<string, string> };
+	misc: { dictionary: Record<string, string>, labels: Record<string, string> };
 }) => ({
 	descriptions: Object.fromEntries(
 		Object.entries(entry.descriptions).map(([category, obj]) => [
@@ -135,4 +179,4 @@ export const localizationEntry = (entry: {
 	),
 	misc: entry.misc,
 });
-export const unprefix = (key: string) => key.split("_").slice(2).join("_")
+export const unprefix = (key: string) => key.split("_").slice(2).join("_");

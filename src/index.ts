@@ -3,7 +3,7 @@ import { initJokers } from "./items/jokers/jokers";
 import { updateTemperature } from "./util/arizona";
 import { findJoker, hook, hookPlain, hsv2rgb, prefixedJoker, scheduleEvent } from "./util/utils";
 
-MYRIAD_INTERNAL_IF_YOU_USE_THIS_YOU_ARE_FIRED.createElement = (type, props, ...children) => {
+MYRIAD_INTERNAL_IF_YOU_USE_THIS_YOU_ARE_FIRED.createElement = (type, props = {}, ...children) => {
 	const stringContents = children.length === 1 && typeof children[0] === "string" ? children[0] : null
 	const value = {
 		n: { root: G.UIT.ROOT, row: G.UIT.R, text: G.UIT.T }[type as "root"],
