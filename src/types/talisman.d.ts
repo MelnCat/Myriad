@@ -47,5 +47,5 @@ declare class Big {
 }
 
 
-declare function to_big(x: number | string | Big, y?: number): Big | number;
+declare function to_big(x: number | string | Big, y?: number): Big;
 declare function to_number(x: Big | number): number;

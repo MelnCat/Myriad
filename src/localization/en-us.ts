@@ -57,6 +57,14 @@ export = localizationEntry({
 				name: "Square Packing",
 				text: ["Rounds Mult up to the", "nearest {C:attention}perfect square{}"],
 			},
+			revolvingjoker: {
+				name: "Revolving Joker",
+				text: ["Sets Mult to {X:mult,C:white}4M^2 - 3M + 1{}", "{C:inactive}Mult, but at what cost?"],
+			},
+			maxwell: {
+				name: "Maxwell",
+				text: ["cat"],
+			}
 		},
 		Chemical: {
 			hydrogen: {
@@ -65,11 +73,11 @@ export = localizationEntry({
 			},
 			oxygen: {
 				name: "Oxygen",
-				text: ["Todo whatever this is", "{C:attention}supposed{} to do"],
+				text: ["{X:purple,C:white}X#1#{} Score"],
 			},
 			water: {
 				name: "Water",
-				text: ["Todo whatever this is", "{C:attention}supposed{} to do"],
+				text: ["e"],
 			},
 			carbon: {
 				name: "Carbon",
@@ -107,6 +115,10 @@ export = localizationEntry({
 				name: "Ammonia",
 				text: ["Todo whatever this is", "{C:attention}supposed{} to do"],
 			},
+			chloroform: {
+				name: "Chloroform",
+				text: ["Adds up to {C:attention}2{} {C:mult}children{} into", "your basement", "{C:inactive}(Must have room)"],
+			}
 		},
 		Other: {
 			p_reagent_pack_1: {

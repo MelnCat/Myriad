@@ -1,9 +1,33 @@
-interface UIBox {
+declare interface Node {
+	T: {
+		scale: number;
+		x: number;
+		y: number;
+		w: number;
+		h: number;
+		r: number;
+	};
+	draw(): void;
+}
+declare interface Moveable extends Node {
+	__myd_revolving?: number;
+}
+declare interface UIElement extends Moveable {
+
+}
+declare interface UIBox extends Moveable {
 	definition: any;
 	config: any;
 }
-
-declare class Sprite {
+declare interface DynaText extends Moveable {
+}
+declare const UIElement: UIElement;
+declare const UIBox: UIBox;
+declare const Sprite: Sprite;
+declare const Moveable: Moveable;
+declare const Node: Node;
+declare const DynaText: DynaText;
+declare interface Sprite extends Moveable {
 	x: number;
 	y: number;
 	w: number;
@@ -23,6 +47,10 @@ declare class Sprite {
 	role: any;
 	parent: any;
 	layered_parallax: any;
+	VT: {
+		r: number;
+		scale: number;
+	};
 	set_sprite_pos(pos: any): void;
 	draw_shader(
 		_shader: string,
@@ -37,7 +65,9 @@ declare class Sprite {
 		custom_shader?: unknown,
 		tilt_shadow?: unknown
 	): void;
+	draw(overlay?: unknown): void;
 	remove(): void;
+	juice_up(scale?: number, rot_amount?: number): void;
 }
 
 interface CardAbility {
@@ -49,7 +79,7 @@ declare interface CardBase {
 	id: number;
 	value: number;
 }
-declare class Card<E = unknown, C = unknown> extends Sprite {
+declare interface Card<E = unknown, C = unknown> extends Sprite {
 	ARGS: {
 		send_to_shader: number[];
 	};
@@ -79,14 +109,6 @@ declare class Card<E = unknown, C = unknown> extends Sprite {
 	area: CardArea;
 	highlighted: boolean;
 	click_timeout: number;
-	T: {
-		scale: number;
-		x: number;
-		y: number;
-		w: number;
-		h: number;
-		r: number;
-	};
 	debuff: boolean;
 	added_to_deck: any;
 	ability: E & { name: string } & CardAbility & C;
@@ -169,7 +191,6 @@ declare class Card<E = unknown, C = unknown> extends Sprite {
 	calculate_rental(): void;
 	calculate_perishable(): void;
 	calculate_joker(context?: any): any;
-	juice_up(scale?: number, rot_amount?: number): void;
 	remove(): void;
 	is_suit(suit: Suits): boolean;
 	flip(): void;

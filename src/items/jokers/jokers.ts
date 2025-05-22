@@ -1,7 +1,7 @@
 import { atlasData } from "../../data/atlas";
 import { getCurrentTemperature } from "../../util/arizona";
 import { getUsedMemory, steamGames, username } from "../../util/system";
-import { atlasJoker, debounce, debounceOwned, scheduleEvent } from "../../util/utils";
+import { atlasJoker, debounce, debounceOwned, findJoker, hook, prefixedJoker, scheduleEvent } from "../../util/utils";
 
 enum JokerRarity {
 	COMMON = 1,
@@ -292,7 +292,7 @@ export const initJokers = () => {
 		key: "squarepacking",
 		atlas: "myd-j-main",
 		pos: atlasJoker("main", "squarepacking"),
-		pixel_size: { w: 71, h:71 },
+		pixel_size: { w: 71, h: 71 },
 		rarity: JokerRarity.COMMON,
 		cost: 3,
 		calculate(card, context) {
@@ -300,6 +300,55 @@ export const initJokers = () => {
 				return {
 					mult: Math.ceil(Math.sqrt(mult)) ** 2 - mult,
 				};
+		},
+	});
+	hook(CardArea, "align_cards").after(function () {
+		for (const c of this.cards) {
+			if (c.config.center.key === prefixedJoker("revolvingjoker") || findJoker("revolvingjoker")) {
+				c.T.r = love.timer.getTime();
+			}
+			if (c.config.center.key === prefixedJoker("maxwell")) {
+				const dx = 0.5 * Math.asin(Math.sin(love.timer.getTime() * 7)) * 1.2;
+				const dy = (0.5 * -Math.acos(Math.cos(2 * love.timer.getTime() * 7))) / 2;
+				c.T.x += dx;
+				c.T.y += dy;
+			}
 		}
+	});
+	const cb = function (this: Moveable) {
+		if (findJoker("revolvingjoker")) {
+			if (this.__myd_revolving === undefined) this.__myd_revolving = this.T.r;
+			this.T.r = love.timer.getTime() * 12;
+		} else if (this.__myd_revolving !== undefined) {
+			this.T.r = this.__myd_revolving;
+			delete this.__myd_revolving;
+		}
+	};
+	hook(Sprite, "draw").before(cb);
+	hook(UIElement, "draw").before(cb);
+	hook(DynaText, "draw").before(cb);
+	SMODS.Joker({
+		key: "revolvingjoker",
+		atlas: "myd-j-main",
+		pos: atlasJoker("main", "revolvingjoker"),
+		rarity: JokerRarity.RARE,
+		cost: 3,
+		calculate(card, context) {
+			if (context.joker_main) {
+				return { mult: 4 * mult ** 2 - 3 * mult + 1 - mult };
+			}
+		},
+		draw(card, layer) {
+			//card.VT.r = love.timer.getTime();
+		},
+	});
+	SMODS.Joker({
+		key: "maxwell",
+		atlas: "myd-j-main",
+		pos: atlasJoker("main", "maxwell"),
+		rarity: JokerRarity.RARE,
+		cost: 3,
+		calculate(card, context) {
+		},
 	});
 };

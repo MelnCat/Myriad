@@ -4,6 +4,7 @@ declare interface CardArea {
 	remove_card(card: Card): void;
 	shuffle(seed: string): void;
 	unhighlight_all(): void;
+	align_cards(): void;
 	config: {
 		card_limit: number;
 	};
@@ -86,6 +87,11 @@ declare interface Globals {
 	GAME: {
 		joker_buffer: number;
 		pack_choices: number;
+		chips: number;
+		blind: {
+			chips: number;
+			in_blind: boolean;
+		}
 		probabilities: {
 			normal: number;
 		};
@@ -112,8 +118,11 @@ declare interface Globals {
 		padding: 0;
 	};
 	STATE: GameState;
+	STATE_COMPLETE: boolean;
 	STATES: {
 		DRAW_TO_HAND: GameState;
+		HAND_PLAYED: GameState;
+		SELECTING_HAND: GameState;
 	};
 }
 declare const G: Globals;
@@ -219,10 +228,10 @@ type CalculateContext =
 	  });
 
 declare interface ScoreModifiers {
-	chips?: number;
-	mult?: number;
-	xmult?: number;
-	dollars?: number;
+	chips?: number | Big;
+	mult?: number | Big;
+	xmult?: number | Big;
+	dollars?: number | Big;
 
 	chip_mod?: number;
 	mult_mod?: number;
@@ -268,6 +277,7 @@ interface JokerOptions<EX, E extends CardAbility = CardAbility & EX> {
 	calculate?(card: Card<E>, context: CalculateContext): CalculateReturn | void;
 	update?(card: Card<E>, dt: number): void;
 	add_to_deck?(card: Card<E>, from_debuff: boolean): void;
+	draw?(card: Card, layer: string): void;
 	rarity?: 1 | 2 | 3 | 4 | "cry_epic";
 	atlas?: string;
 	pos?: { x: number; y: number };

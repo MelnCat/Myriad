@@ -128,6 +128,33 @@ export const initChemicals = () => {
 		key: "oxygen",
 		pos: atlasConsumable("chemicals", "oxygen"),
 		cost: 4,
+		config: {
+			xscore: 1.5,
+		},
+		loc_vars(info_queue, card) {
+			return { vars: [card.ability.xscore] };
+		},
+		can_use() {
+			return G.GAME.blind.in_blind;
+		},
+		use(card) {
+			play_sound("tarot1");
+			card.juice_up(0.3, 0.5);
+			const final = G.GAME.chips * card.ability.xscore;
+			ease_chips(final);
+			scheduleEvent(
+				() => {
+					if (G.STATE !== G.STATES.SELECTING_HAND) return false;
+					if (final >= G.GAME.blind.chips) {
+						G.STATE = G.STATES.HAND_PLAYED;
+						G.STATE_COMPLETE = true;
+						end_round();
+					}
+					return true;
+				},
+				{ delay: 0.3, blocking: false }
+			);
+		},
 	});
 	createComplexChemical({
 		key: "water",
@@ -188,36 +215,46 @@ export const initChemicals = () => {
 			return true;
 		},
 	});
+	createComplexChemical({
+		key: "chloroform",
+		pos: atlasConsumable("chemicals", "chloroform"),
+		cost: 4,
+		can_use(card) {
+			return true;
+		},
+	});
 
 	G.FUNCS.react_card = e => {
 		const card = e.config.ref_table;
 		const reactions = chemicalReactions.filter(x => x.reactants.includes(unprefix(card.config.center.key)));
 		scheduleEventAfter(() => {
 			for (const reaction of reactions) {
-			const cards = reaction.reactants.map(x => (x === unprefix(card.config.center.key) ? card : G.consumeables.cards.find(y => unprefix(y.config.center.key) === x) ?? -1));
-			if (!cards.includes(-1)) {
-				const toAdd = G.consumeables.config.card_limit - G.consumeables.cards.length + 1
-				for (const c of cards) {
-					const car = c as Card;
-					car.area.remove_card(car);
-					car.remove();
+				const cards = reaction.reactants.map(x =>
+					x === unprefix(card.config.center.key) ? card : G.consumeables.cards.find(y => unprefix(y.config.center.key) === x) ?? -1
+				);
+				if (!cards.includes(-1)) {
+					const toAdd = G.consumeables.config.card_limit - G.consumeables.cards.length + 1;
+					for (const c of cards) {
+						const car = c as Card;
+						car.area.remove_card(car);
+						car.remove();
+					}
+					for (const product of reaction.products.slice(0, toAdd)) {
+						SMODS.add_card({
+							set: "Chemical",
+							key: `c_myd_${product}`,
+							area: G.consumeables,
+						});
+					}
+					card.children.price?.remove();
+					delete card.children.price;
+					card.children.buy_button?.remove();
+					delete card.children.buy_button;
+					G.GAME.pack_choices--;
+					if (G.GAME.pack_choices <= 0) G.FUNCS.end_consumeable(null, 0.1);
+					break;
 				}
-				for (const product of reaction.products.slice(0, toAdd)) {
-					SMODS.add_card({
-						set: "Chemical",
-						key: `c_myd_${product}`,
-						area: G.consumeables,
-					});
-				}
-				card.children.price?.remove();
-				delete card.children.price;
-				card.children.buy_button?.remove();
-				delete card.children.buy_button;
-				G.GAME.pack_choices--;
-				if (G.GAME.pack_choices <= 0) G.FUNCS.end_consumeable(null, 0.1)
-				break;
 			}
-		}
 		}, 0.1);
 		return true;
 	};
@@ -247,7 +284,7 @@ export const initChemicals = () => {
 							one_press
 							button="react_card"
 						>
-							<text colour={G.C.UI.TEXT_LIGHT} scale={0.5} shadow>
+							<text colour={G.C.UI.TEXT_LIGHT} scale={0.4} shadow>
 								{localize("b_react")}
 							</text>
 						</row>
