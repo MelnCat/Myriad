@@ -86,6 +86,7 @@ for (const file of luaFiles) {
 			? /* lua */ `\
 local MYRIAD_FILEMAP = {}
 _G.MYRIAD_INTERNAL_IF_YOU_USE_THIS_YOU_ARE_FIRED = {}
+_G.MYRIAD_INTERNAL_IF_YOU_USE_THIS_YOU_ARE_FIRED.hideNumbers = false
 _G.MYRIAD_INTERNAL_IF_YOU_USE_THIS_YOU_ARE_FIRED.require = function(name)
     if MYRIAD_FILEMAP[name] ~= nil then
         return MYRIAD_FILEMAP[name]

@@ -305,7 +305,7 @@ export const initJokers = () => {
 	hook(CardArea, "align_cards").after(function () {
 		for (const c of this.cards) {
 			if (c.config.center.key === prefixedJoker("revolvingjoker") || findJoker("revolvingjoker")) {
-				c.T.r = love.timer.getTime();
+				c.T.r = love.timer.getTime() * 12;
 			}
 			if (c.config.center.key === prefixedJoker("maxwell")) {
 				const dx = 0.5 * Math.asin(Math.sin(love.timer.getTime() * 7)) * 1.2;
@@ -348,7 +348,6 @@ export const initJokers = () => {
 		pos: atlasJoker("main", "maxwell"),
 		rarity: JokerRarity.RARE,
 		cost: 3,
-		calculate(card, context) {
-		},
+		calculate(card, context) {},
 	});
 };

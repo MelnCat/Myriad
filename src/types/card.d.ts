@@ -1,3 +1,4 @@
+
 declare interface Node {
 	T: {
 		scale: number;
@@ -13,7 +14,19 @@ declare interface Moveable extends Node {
 	__myd_revolving?: number;
 }
 declare interface UIElement extends Moveable {
-
+	update_text(): void;
+	draw_self(): void;
+	update_object(): void;
+	calculate_xywh(node: Node, _T: unknown, recalculate: unknown, _scale: number): void;
+	update(): void;
+	UIBox?: UIBox;
+	config?: {
+		text?: string;
+		text_drawable?: import("love.graphics").Text;
+		ref_table?: Record<string, string>;
+		ref_value?: string;
+		prev_value?: string;
+	}
 }
 declare interface UIBox extends Moveable {
 	definition: any;

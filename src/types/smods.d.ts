@@ -74,9 +74,9 @@ declare interface Globals {
 		};
 	};
 	FUNCS: {
-		react_card(this: void, e: { config: { ref_table: Card } }): void
-		end_consumeable(this: void, something: null, delay: number): void
-	}
+		react_card(this: void, e: { config: { ref_table: Card } }): void;
+		end_consumeable(this: void, something: null, delay: number): void;
+	};
 	UIDEF: UIDef;
 	C: Colors;
 	ARGS: {
@@ -91,7 +91,7 @@ declare interface Globals {
 		blind: {
 			chips: number;
 			in_blind: boolean;
-		}
+		};
 		probabilities: {
 			normal: number;
 		};
@@ -408,6 +408,41 @@ interface ShaderOptions {
 	key: string;
 	path: string;
 }
+interface BlindOptions {
+	key: string;
+	loc_txt?: LocalizedText;
+	atlas?: string;
+	pos?: { x: number; y: number };
+	dollars?: number;
+	mult?: number;
+	boss?: { min: number; showdown?: boolean };
+	boss_colour?: RGBA;
+	debuff?: {
+		hand?: Record<string, boolean>
+		h_size_ge?: number;
+		h_size_le?: number;
+		suit?: Suits;
+		value?: string;
+		nominal?: number;
+		is_face?: boolean;
+	}
+	ignore_showdown_check?: boolean;
+	vars?: unknown;
+	set_blind?(): void;
+	disable?(): void;
+	defeat?(): void;
+	drawn_to_hand?(): void;
+	press_play?(): void;
+	recalc_debuff?(card: Card, from_blind: boolean): boolean;
+	debuff_hand?(cards: Card[], hand: unknown, handname: string, check: unknown): boolean;
+	stay_flipped?(area: CardArea, card: Card): boolean;
+	modify_hand?(cards: Card[], poker_hands: unknown, text: string, mult: number, hand_chips: number): LuaMultiReturn<[mult: number, hand_chips: number, changed: boolean]>
+	get_loc_debuff_text?(): string;
+	loc_vars?(): { vars?: (string | number | undefined)[], key?: string };
+	collection_loc_vars?(): { vars?: (string | number | undefined)[], key?: string };
+	in_pool?(): boolean;
+
+}
 type Enhancement = "m_bonus" | "m_mult" | "m_wild" | "m_glass" | "m_steel" | "m_stone" | "m_gold" | "m_lucky";
 
 declare const SMODS: {
@@ -419,6 +454,7 @@ declare const SMODS: {
 	Booster: (this: void, opts: BoosterOptions) => void;
 	Shader: (this: void, opts: ShaderOptions) => void;
 	Rarity: (this: void, opts: RarityOptions) => void;
+	Blind: (this: void, opts: BlindOptions) => void;
 	//
 	create_card: <T extends ObjectType>(this: void, opts: CreateCardOptions<T>) => Card;
 	add_card: <T extends ObjectType>(this: void, opts: CreateCardOptions<T>) => void;
