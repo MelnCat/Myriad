@@ -64,6 +64,10 @@ export = localizationEntry({
 			maxwell: {
 				name: "Maxwell",
 				text: ["cat"],
+			},
+			ooiiaa: {
+				name: "OO II AA",
+				text: ["oia"]
 			}
 		},
 		Chemical: {

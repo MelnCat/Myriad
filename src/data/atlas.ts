@@ -15,6 +15,9 @@ interface AtlasData {
 		};
 	};
 	anim: {
+		jokers: {
+			main: Record<string, { x: number; y: number }[]>;
+		};
 		misc: {
 			blinds: Record<string, { x: number; y: number }[]>;
 		};

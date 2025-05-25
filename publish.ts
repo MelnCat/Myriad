@@ -27,27 +27,20 @@ for (const atlas of allAtlases) {
 		)[0];
 		if (!sampleMeta.width || !sampleMeta.height) throw new Error("Sample image dimensions not found");
 		const atlasWidth = subAtlas === "blinds" ? 21 : ATLAS_WIDTH;
-		let image = sharp({
-			create: {
-				width: sampleMeta.width * atlasWidth * 2,
-				height: sampleMeta.height * Math.ceil(items.length / atlasWidth) * 2,
-				channels: 4,
-				background: { r: 0, g: 0, b: 0, alpha: 0 },
-			},
-		});
 		let toCompose: { input: Buffer; left: number; top: number }[] = [];
 		let ix = 0;
 		for (const [i, item] of items.sort((a, b) => a.localeCompare(b)).entries()) {
 			atlases[atlas][subAtlas][path.parse(item).name] = { x: ix % atlasWidth, y: Math.floor(ix / atlasWidth) };
 
 			const anim = apng.framesFromApng(fileURLToPath(new URL(`atlas/${atlas}/${subAtlas}/${item}`, import.meta.url)), true) as apng.ImageData;
-			const frameCount = anim.delay.map(x => Math.ceil(+x / 100)).reduce((l, c) => l + c, 0);
+			const min = +anim.delay.reduce((l, c) => (c < l ? c : l), 100);
+			const frameCount = anim.delay.map(x => Math.ceil(+x / min)).reduce((l, c) => l + c, 0);
 			if (subAtlas === "blinds" && frameCount !== 21) throw new Error(`${item} is a blind but does not have 21 frames`);
 			for (const [j, frame] of anim.frames!.entries()) {
-				const delay = (anim.delay[j] as number) ?? 100;
+				const delay = (anim.delay[j] as number) ?? min;
 				const meta = await frame.metadata();
 				if (meta.width === sampleMeta.width) frame.resize(meta.width! * 2, meta.height! * 2, { kernel: "nearest" });
-				for (let t = 0; t < delay; t += 100) {
+				for (let t = 0; t < delay; t += min) {
 					if (frameCount > 1) {
 						animatedAtlases[atlas] ??= {};
 						animatedAtlases[atlas][subAtlas] ??= {};
@@ -64,6 +57,14 @@ for (const atlas of allAtlases) {
 			}
 		}
 
+		let image = sharp({
+			create: {
+				width: sampleMeta.width * atlasWidth * 2,
+				height: sampleMeta.height * Math.ceil(ix / atlasWidth) * 2,
+				channels: 4,
+				background: { r: 0, g: 0, b: 0, alpha: 0 },
+			},
+		});
 		await image.composite(toCompose).toFile(fileURLToPath(new URL(`build/assets/2x/${atlas}/${subAtlas}.png`, import.meta.url)));
 	}
 }

@@ -70,7 +70,7 @@ declare interface Sprite extends Moveable {
 		r: number;
 		scale: number;
 	};
-	set_sprite_pos(pos: any): void;
+	set_sprite_pos(pos: {x: number, y: number}): void;
 	draw_shader(
 		_shader: string,
 		_shadow_height?: number,

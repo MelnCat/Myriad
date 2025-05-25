@@ -347,7 +347,24 @@ export const initJokers = () => {
 		atlas: "myd-j-main",
 		pos: atlasJoker("main", "maxwell"),
 		rarity: JokerRarity.RARE,
+		pixel_size: { w: 71, h: 50 },
 		cost: 3,
 		calculate(card, context) {},
+	});
+	SMODS.Joker({
+		key: "ooiiaa",
+		atlas: "myd-j-main",
+		pos: atlasJoker("main", "ooiiaa"),
+		rarity: JokerRarity.RARE,
+		pixel_size: { w: 71, h: 75 },
+		cost: 3,
+		calculate(card, context) {},
+		update(card) {
+			const frames = atlasData.anim.jokers.main.ooiiaa.slice(1);
+			if (G.CONTROLLER.hovering.target === card) {
+				card.children.center.set_sprite_pos(frames[Math.floor(love.timer.getTime() * 25 % frames.length)]);
+			}
+			else card.children.center.set_sprite_pos(atlasData.anim.jokers.main.ooiiaa[0]);
+		}
 	});
 };
