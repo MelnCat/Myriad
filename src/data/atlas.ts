@@ -11,9 +11,16 @@ interface AtlasData {
 		};
 		misc: {
 			boosters: Record<string, { x: number; y: number }>;
+			blinds: Record<string, { x: number; y: number }[]>;
+		};
+	};
+	anim: {
+		misc: {
+			blinds: Record<string, { x: number; y: number }[]>;
 		};
 	};
 }
 export const atlasData: AtlasData = {
 	pos: json.decode("<data>"),
+	anim: json.decode("<animdata>"),
 };

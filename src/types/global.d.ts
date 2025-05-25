@@ -1,5 +1,5 @@
 declare var MYRIAD_INTERNAL_IF_YOU_USE_THIS_YOU_ARE_FIRED: {
-	hideNumbers: boolean;
+	hideNumbers: () => boolean;
 	require(this: void, module: string): unknown;
 	createElement(type: string | Function, props: Partial<UINodeConfig>, ...children: any[]): any;
 };

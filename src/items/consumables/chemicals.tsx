@@ -259,7 +259,7 @@ export const initChemicals = () => {
 		return true;
 	};
 
-	hookPlain(G.UIDEF, "use_and_sell_buttons").before((card, early) => {
+	hookPlain(G.UIDEF, "use_and_sell_buttons").before((meta, card) => {
 		if (!card.area || card.area !== G.pack_cards) return;
 		if (card.ability.set !== "Chemical") return;
 		if (G.consumeables.cards.length >= G.consumeables.config.card_limit) {
@@ -268,7 +268,7 @@ export const initChemicals = () => {
 				.map(x => x.reactants.toSpliced(x.reactants.indexOf(unprefix(card.config.center.key)), 1));
 
 			if (reactions.some(x => G.consumeables.cards.filter(y => y.ability.set === "Chemical").some(y => x.includes(unprefix(y.config.center.key))))) {
-				early(
+				meta.earlyReturn(
 					<root padding={-0.1} colour={G.C.CLEAR}>
 						<row
 							ref_table={card}

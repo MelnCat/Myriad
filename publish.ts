@@ -1,5 +1,6 @@
 import fs, { existsSync, glob } from "fs";
 import sharp from "sharp";
+import apng from "sharp-apng";
 import { globbySync } from "globby";
 import { fileURLToPath, pathToFileURL } from "url";
 import path, { basename, dirname } from "path";
@@ -11,6 +12,7 @@ if (!fs.existsSync(new URL("build/assets/1x", import.meta.url))) fs.mkdirSync(ne
 if (!fs.existsSync(new URL("build/assets/2x", import.meta.url))) fs.mkdirSync(new URL("build/assets/2x", import.meta.url));
 
 let atlases: Record<string, Record<string, Record<string, { x: number; y: number }>>> = {};
+let animatedAtlases: Record<string, Record<string, Record<string, { x: number; y: number }[]>>> = {};
 
 const allAtlases = fs.readdirSync(new URL("atlas", import.meta.url));
 for (const atlas of allAtlases) {
@@ -20,25 +22,46 @@ for (const atlas of allAtlases) {
 		fs.mkdirSync(new URL(`build/assets/1x/${atlas}/`, import.meta.url), { recursive: true });
 		fs.mkdirSync(new URL(`build/assets/2x/${atlas}/`, import.meta.url), { recursive: true });
 		const items = fs.readdirSync(new URL(`atlas/${atlas}/${subAtlas}`, import.meta.url));
+		const sampleMeta = (await Promise.all(items.map(x => sharp(fileURLToPath(new URL(`atlas/${atlas}/${subAtlas}/${x}`, import.meta.url)))).map(x => x.metadata()))).sort(
+			(a, b) => a.width! - b.width!
+		)[0];
+		if (!sampleMeta.width || !sampleMeta.height) throw new Error("Sample image dimensions not found");
+		const atlasWidth = subAtlas === "blinds" ? 21 : ATLAS_WIDTH;
 		let image = sharp({
 			create: {
-				width: JOKER_WIDTH * ATLAS_WIDTH * 2,
-				height: JOKER_HEIGHT * Math.ceil(items.length / ATLAS_WIDTH) * 2,
+				width: sampleMeta.width * atlasWidth * 2,
+				height: sampleMeta.height * Math.ceil(items.length / atlasWidth) * 2,
 				channels: 4,
 				background: { r: 0, g: 0, b: 0, alpha: 0 },
 			},
 		});
 		let toCompose: { input: Buffer; left: number; top: number }[] = [];
-		for (const [i, joker] of items.sort((a, b) => a.localeCompare(b)).entries()) {
-			atlases[atlas][subAtlas][path.parse(joker).name] = { x: i % ATLAS_WIDTH, y: Math.floor(i / ATLAS_WIDTH) };
-			const img = sharp(fileURLToPath(new URL(`atlas/${atlas}/${subAtlas}/${joker}`, import.meta.url)));
-			const meta = await img.metadata();
-			if (meta.width === JOKER_WIDTH) img.resize(meta.width! * 2, meta.height! * 2, { kernel: "nearest" });
-			toCompose.push({
-				input: await img.toBuffer(),
-				left: (i % ATLAS_WIDTH) * JOKER_WIDTH * 2,
-				top: Math.floor(i / ATLAS_WIDTH) * JOKER_HEIGHT * 2,
-			});
+		let ix = 0;
+		for (const [i, item] of items.sort((a, b) => a.localeCompare(b)).entries()) {
+			atlases[atlas][subAtlas][path.parse(item).name] = { x: ix % atlasWidth, y: Math.floor(ix / atlasWidth) };
+
+			const anim = apng.framesFromApng(fileURLToPath(new URL(`atlas/${atlas}/${subAtlas}/${item}`, import.meta.url)), true) as apng.ImageData;
+			const frameCount = anim.delay.map(x => Math.ceil(+x / 100)).reduce((l, c) => l + c, 0);
+			if (subAtlas === "blinds" && frameCount !== 21) throw new Error(`${item} is a blind but does not have 21 frames`);
+			for (const [j, frame] of anim.frames!.entries()) {
+				const delay = (anim.delay[j] as number) ?? 100;
+				const meta = await frame.metadata();
+				if (meta.width === sampleMeta.width) frame.resize(meta.width! * 2, meta.height! * 2, { kernel: "nearest" });
+				for (let t = 0; t < delay; t += 100) {
+					if (frameCount > 1) {
+						animatedAtlases[atlas] ??= {};
+						animatedAtlases[atlas][subAtlas] ??= {};
+						animatedAtlases[atlas][subAtlas][path.parse(item).name] ??= [];
+						animatedAtlases[atlas][subAtlas][path.parse(item).name].push({ x: ix % atlasWidth, y: Math.floor(ix / atlasWidth) });
+					}
+					toCompose.push({
+						input: await frame.toFormat("png").toBuffer(),
+						left: (ix % atlasWidth) * sampleMeta.width * 2,
+						top: Math.floor(ix / atlasWidth) * sampleMeta.height * 2,
+					});
+					ix++;
+				}
+			}
 		}
 
 		await image.composite(toCompose).toFile(fileURLToPath(new URL(`build/assets/2x/${atlas}/${subAtlas}.png`, import.meta.url)));
@@ -76,7 +99,8 @@ for (const file of luaFiles) {
 		str = str.replace(/require\("(.+?)"\)/g, (_, a) =>
 			["ffi", "SMODS.https"].includes(a) ? _ : `MYRIAD_INTERNAL_IF_YOU_USE_THIS_YOU_ARE_FIRED.require("${a.replaceAll(".", "/")}.lua")`
 		);
-		if (file.endsWith("atlas.lua")) str = str.replace(`"<data>"`, JSON.stringify(JSON.stringify(atlases)));
+		if (file.endsWith("atlas.lua"))
+			str = str.replace(`"<data>"`, JSON.stringify(JSON.stringify(atlases))).replace(`"<animdata>"`, JSON.stringify(JSON.stringify(animatedAtlases)));
 		return str;
 	})();
 

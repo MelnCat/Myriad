@@ -1,4 +1,3 @@
-
 declare interface Node {
 	T: {
 		scale: number;
@@ -26,13 +25,20 @@ declare interface UIElement extends Moveable {
 		ref_table?: Record<string, string>;
 		ref_value?: string;
 		prev_value?: string;
-	}
+	};
 }
 declare interface UIBox extends Moveable {
 	definition: any;
 	config: any;
 }
 declare interface DynaText extends Moveable {
+	update(dt: number): void;
+	update_text(first_pass?: boolean): void;
+	__myd_digitCheck?: boolean;
+	init(config: {}): void;
+	pop_in(): void;
+	pop_out(): void;
+	config: {};
 }
 declare const UIElement: UIElement;
 declare const UIBox: UIBox;
@@ -116,7 +122,7 @@ declare interface Card<E = unknown, C = unknown> extends Sprite {
 		x: number;
 		y: number;
 	};
-	facing: string;
+	facing: "back" | "front";
 	sprite_facing: string;
 	flipping: any;
 	area: CardArea;
@@ -208,4 +214,6 @@ declare interface Card<E = unknown, C = unknown> extends Sprite {
 	is_suit(suit: Suits): boolean;
 	flip(): void;
 	_MYD?: any;
+	draw(layer: string): void;
 }
+declare const Card: Card;

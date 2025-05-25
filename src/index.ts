@@ -1,18 +1,19 @@
 import { initChemicals } from "./items/consumables/chemicals";
 import { initJokers } from "./items/jokers/jokers";
+import { initBlinds } from "./items/misc/blinds";
 import { updateTemperature } from "./util/arizona";
-import { findJoker, hook, hookPlain, hsv2rgb, prefixedJoker, scheduleEvent } from "./util/utils";
+import { findJoker, hook, hookPlain, hsv2rgb, prefixed, prefixedJoker, scheduleEvent } from "./util/utils";
 
 MYRIAD_INTERNAL_IF_YOU_USE_THIS_YOU_ARE_FIRED.createElement = (type, props = {}, ...children) => {
-	const stringContents = children.length === 1 && typeof children[0] === "string" ? children[0] : null
+	const stringContents = children.length === 1 && typeof children[0] === "string" ? children[0] : null;
 	const value = {
 		n: { root: G.UIT.ROOT, row: G.UIT.R, text: G.UIT.T }[type as "root"],
-		config: {...props, text: children.length === 1 && typeof children[0] === "string" ? children[0] : props?.text},
-		nodes: stringContents ? [] : children
+		config: { ...props, text: children.length === 1 && typeof children[0] === "string" ? children[0] : props?.text },
+		nodes: stringContents ? [] : children,
 	} satisfies UINode;
 	return value;
 };
-
+MYRIAD_INTERNAL_IF_YOU_USE_THIS_YOU_ARE_FIRED.hideNumbers = () => G.GAME.blind?.config?.blind?.key === prefixed("bl", "digit")
 SMODS.Atlas({
 	key: "myd-j-main",
 	path: "jokers/main.png",
@@ -34,15 +35,25 @@ SMODS.Atlas({
 	py: 95,
 });
 
+SMODS.Atlas({
+	key: "myd-m-blinds",
+	path: "misc/blinds.png",
+	atlas_table: "ANIMATION_ATLAS",
+	px: 34,
+	py: 34,
+	frames: 21
+});
+
 SMODS.Shader({
 	key: "outline",
-	path: "outline.fs"
-})
+	path: "outline.fs",
+});
 
 G.C.FISH = [0, 0, 0, 1];
 G.C.MYD_CHEMICAL = HEX("95c5c9");
 initJokers();
 initChemicals();
+initBlinds();
 hook(CardArea, "shuffle").after(function () {
 	if (this === G.deck) {
 		const floatation = findJoker("floatation");
@@ -66,7 +77,7 @@ hook(Game, "update").before(() => {
 		init = true;
 	}
 });
-hookPlain(love, "focus").before(opened => {
+hookPlain(love, "focus").before((meta, opened) => {
 	if (opened) return;
 	const you = findJoker("you");
 	if (!you) return;

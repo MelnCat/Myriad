@@ -127,6 +127,12 @@ export = localizationEntry({
 				text: ["Choose {C:attention}#1#{} of up to", "{C:attention}#2# {C:myd_chemical}Chemical{} card#<s>2#"],
 			},
 		},
+		Blind: {
+			digit: {
+				name: "The Digit",
+				text: ["All {C:attention}numbers{} are hidden"],
+			},
+		},
 	},
 	misc: {
 		dictionary: {

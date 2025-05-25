@@ -91,6 +91,11 @@ declare interface Globals {
 		blind: {
 			chips: number;
 			in_blind: boolean;
+			config: {
+				blind: {
+					key: string;
+				}
+			}
 		};
 		probabilities: {
 			normal: number;
@@ -290,6 +295,8 @@ interface AtlasOptions {
 	path: string;
 	px: number;
 	py: number;
+	atlas_table?: "ANIMATION_ATLAS";
+	frames?: number;
 }
 type Rarity = number | "myd_simple" | "myd_complex";
 type ObjectType = "Joker" | "Tarot" | "Spectral" | "Code" /* cryptid */ | "RCode" /* entropy */ | "Chemical";

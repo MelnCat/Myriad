@@ -8,6 +8,14 @@ type PlainMethods<T> = {
 }[keyof T];
 type NReturnType<T extends (...args: any) => any | undefined | null> = T extends (...args: any) => infer R ? R : any;
 
+interface BeforeMeta<T> {
+	earlyReturn: (value: T) => void;
+}
+interface AfterMeta<T> {
+	returnValue: T;
+	overrideReturn: (value: T) => void;
+}
+
 export const hook = <O, K extends Methods<O>>(obj: O, key: K) => {
 	const old = obj[key] as (this: O) => void;
 	let before = (...args: any) => {};
@@ -15,23 +23,36 @@ export const hook = <O, K extends Methods<O>>(obj: O, key: K) => {
 	obj[key] = function (this: O, ...args: Parameters<typeof old>) {
 		let earlyReturn = false;
 		let value: unknown = null;
-		before.call(this, ...args, (v: unknown) => {
-			value = v;
-			earlyReturn = true;
-		});
+		before.call(
+			this,
+			{
+				earlyReturn: (v: unknown) => {
+					value = v;
+					earlyReturn = true;
+				},
+			},
+			...args
+		);
 		if (earlyReturn) return value;
 		value = old?.call(this, ...args);
-		after.call(this, ...args, value, (v: unknown) => {
-			value = v;
-		});
+		after.call(
+			this,
+			{
+				returnValue: value,
+				overrideReturn: (v: unknown) => {
+					value = v;
+				},
+			},
+			...args
+		);
 		return value;
 	} as O[K];
 	return {
-		before(cb: (this: O, ...args: NonNullable<O[K]> extends (...args: infer T) => infer U ? [...T, earlyReturn: (retValue: U) => void] : []) => void) {
+		before(cb: (this: O, ...args: NonNullable<O[K]> extends (...args: infer T) => infer U ? [BeforeMeta<U>, ...T] : []) => void) {
 			before = cb as () => void;
 			return this;
 		},
-		after(cb: (this: O, ...args: NonNullable<O[K]> extends (...args: infer T) => infer U ? [...T, U, setReturn: (retValue: U) => void] : []) => void) {
+		after(cb: (this: O, ...args: NonNullable<O[K]> extends (...args: infer T) => infer U ? [AfterMeta<U>, ...T] : []) => void) {
 			after = cb as () => void;
 			return this;
 		},
@@ -44,23 +65,34 @@ export const hookPlain = <O, K extends PlainMethods<O>>(obj: O, key: K) => {
 	obj[key] = function (this: void, ...args: Parameters<typeof old>) {
 		let earlyReturn = false;
 		let value: unknown = null;
-		before(...args, (v: unknown) => {
-			value = v;
-			earlyReturn = true;
-		});
+		before(
+			{
+				earlyReturn: (v: unknown) => {
+					value = v;
+					earlyReturn = true;
+				},
+			},
+			...args
+		);
 		if (earlyReturn) return value;
 		value = old?.(...args);
-		after(...args, value, (v: unknown) => {
-			value = v;
-		});
+		after(
+			{
+				returnValue: value,
+				overrideReturn: (v: unknown) => {
+					value = v;
+				},
+			},
+			...args
+		);
 		return value;
 	} as O[K];
 	return {
-		before(cb: (this: void, ...args: NonNullable<O[K]> extends (...args: infer T) => infer U ? [...T, earlyReturn: (retValue: U) => void] : []) => void) {
+		before(cb: (this: void, ...args: NonNullable<O[K]> extends (...args: infer T) => infer U ? [BeforeMeta<U>, ...T] : []) => void) {
 			before = cb;
 			return this;
 		},
-		after(cb: (this: void, ...args: NonNullable<O[K]> extends (...args: infer T) => infer U ? [...T, U, setReturn: (retValue: U) => void] : []) => void) {
+		after(cb: (this: void, ...args: NonNullable<O[K]> extends (...args: infer T) => infer U ? [AfterMeta<U>, ...T] : []) => void) {
 			after = cb;
 			return this;
 		},
@@ -131,6 +163,8 @@ export const runSelectedTarotEffects = (card: Card, cb: (c: Card) => void) => {
 
 export const prefixedJoker = (key: string) => `j_myd_${key}`;
 
+export const prefixed = (prefix: string, key: string) => `${prefix}_myd_${key}`;
+
 export const debounce = <T extends (...args: any[]) => any>(func: T, ms: number): T => {
 	let lastCall = 0;
 	let lastReturn: ReturnType<T> = null as ReturnType<T>;
@@ -161,10 +195,11 @@ export const findJoker = (key: string) => G?.jokers?.cards?.find(x => x.config.c
 const prefixes = {
 	Joker: "j",
 	Chemical: "c",
+	Blind: "bl",
 };
 export const localizationEntry = (entry: {
-	descriptions: Record<"Joker" | "Chemical" | "Other", Record<string, LocalizedText>>;
-	misc: { dictionary: Record<string, string>, labels: Record<string, string> };
+	descriptions: Record<"Joker" | "Chemical" | "Other" | "Blind", Record<string, LocalizedText>>;
+	misc: { dictionary: Record<string, string>; labels: Record<string, string> };
 }) => ({
 	descriptions: Object.fromEntries(
 		Object.entries(entry.descriptions).map(([category, obj]) => [

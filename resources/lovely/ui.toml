@@ -9,7 +9,7 @@ target = "engine/ui.lua"
 pattern = '''if self.UIT == G.UIT.T then self:update_text() end'''
 position = "after"
 payload = '''
-if _G.MYRIAD_INTERNAL_IF_YOU_USE_THIS_YOU_ARE_FIRED.hideNumbers and self.UIT == G.UIT.T then
+if _G.MYRIAD_INTERNAL_IF_YOU_USE_THIS_YOU_ARE_FIRED.hideNumbers and _G.MYRIAD_INTERNAL_IF_YOU_USE_THIS_YOU_ARE_FIRED.hideNumbers() and self.UIT == G.UIT.T then
 	self.config.text_drawable:set(tostring(self.config.text):gsub("%d[0-9,.]+%d", "???"):gsub("%d", "?"))
 end
 '''
@@ -21,6 +21,6 @@ target = "engine/text.lua"
 pattern = '''local current_letter = 1'''
 position = "after"
 payload = '''
-if _G.MYRIAD_INTERNAL_IF_YOU_USE_THIS_YOU_ARE_FIRED.hideNumbers then v = v:gsub("%d[0-9,.]+%d", "???"):gsub("%d", "?") end
+if _G.MYRIAD_INTERNAL_IF_YOU_USE_THIS_YOU_ARE_FIRED.hideNumbers and _G.MYRIAD_INTERNAL_IF_YOU_USE_THIS_YOU_ARE_FIRED.hideNumbers() then v = v:gsub("%d[0-9,.]+%d", "???"):gsub("%d", "?") end
 '''
 match_indent = true
