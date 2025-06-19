@@ -1,8 +1,9 @@
 import * as ffi from "ffi";
 import * as nativefs from "../lib/nativefs";
 import { debounce } from "./utils";
+import * as lovely from "lovely";
 
-export const matchOs = <T>(obj: Partial<Record<"win" | "mac" | "linux", (() => T) | T>>, fallback?: T | (() => T)) => {
+export const matchOs = <T>(obj: Partial<Record<"win" | "mac" | "linux", (() => T) | T>>, fallback?: T | (() => T)): T => {
 	const key = (
 		{
 			Windows: "win",
@@ -21,15 +22,27 @@ export const matchOs = <T>(obj: Partial<Record<"win" | "mac" | "linux", (() => T
 	return returnValue;
 };
 
-export const steamGames = nativefs
-	.getDirectoryItems(
+const libraryFolders = (
+	nativefs.read(
 		matchOs({
-			win: "C:\\Program Files (x86)\\Steam\\steamapps",
-			mac: () => `${os.getenv("HOME")}/Library/Application Support/Steam/steamapps`,
-			linux: () => `${os.getenv("HOME")}/.steam/steam/steamapps`,
+			win: "C:\\Program Files (x86)\\Steam\\steamapps\\libraryfolders.vdf",
+			mac: () => `${os.getenv("HOME")}/Library/Application Support/Steam/steamapps/libraryfolders.vdf`,
+			linux: () => `${os.getenv("HOME")}/.steam/steam/steamapps/libraryfolders.vdf`,
 		})
-	)
-	.filter(x => x.endsWith(".acf")).length;
+	)[0] as string
+)
+	?.split("\n")
+	.filter(x => x.includes(`"path"`))
+	.map(x => string.find(x, '"\t\t"(.+)"')[2] as string)
+	.filter(x => x)
+	.map(x => `${x}/steamapps`) ?? [];
+const main = matchOs({
+	win: "C:/Program Files (x86)/Steam/steamapps",
+	mac: () => `${os.getenv("HOME")}/Library/Application Support/Steam/steamapps`,
+	linux: () => `${os.getenv("HOME")}/.steam/steam/steamapps`,
+});
+if (!libraryFolders.length) libraryFolders.push(main);
+export const steamGames = libraryFolders.map(y => nativefs.getDirectoryItems(y).filter(x => x.endsWith(".acf")).length).reduce((l, c) => l + c, 0);
 
 export const exec = (script: string) => {
 	const [handle] = io.popen(script);

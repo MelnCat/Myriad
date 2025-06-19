@@ -1,6 +1,7 @@
 import { initChemicals } from "./items/consumables/chemicals";
 import { initJokers } from "./items/jokers/jokers";
 import { initBlinds } from "./items/misc/blinds";
+import { initEditions } from "./items/misc/editions";
 import { updateTemperature } from "./util/arizona";
 import { findJoker, hook, hookPlain, hsv2rgb, prefixed, prefixedJoker, scheduleEvent } from "./util/utils";
 
@@ -48,12 +49,17 @@ SMODS.Shader({
 	key: "outline",
 	path: "outline.fs",
 });
+SMODS.Shader({
+	key: "drenched",
+	path: "drenched.fs",
+});
 
 G.C.FISH = [0, 0, 0, 1];
 G.C.MYD_CHEMICAL = HEX("95c5c9");
 initJokers();
 initChemicals();
 initBlinds();
+initEditions();
 hook(CardArea, "shuffle").after(function () {
 	if (this === G.deck) {
 		const floatation = findJoker("floatation");

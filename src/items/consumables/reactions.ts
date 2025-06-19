@@ -32,4 +32,8 @@ export const chemicalReactions = [
 		reactants: ["nitrogen", "hydrogen"],
 		products: ["ammonia"]
 	},
+	{
+		reactants: ["chlorine", "methane"],
+		products: ["chloroform"]
+	}
 ]

@@ -183,6 +183,9 @@ export const debounceOwned = <U, T extends (this: U, ...args: any[]) => any>(fun
 		return (lastReturn = func.call(this, ...args));
 	} as T;
 };
+export const animateJoker = (card: Card, frames: { x: number; y: number }[], delay: number = 60) => {
+	card.children.center.set_sprite_pos(frames[Math.floor((love.timer.getTime() / delay * 1000) % frames.length)]);
+};
 
 type AtlasCategory = keyof (typeof atlasData)["pos"];
 export const atlasPos = <T extends AtlasCategory>(category: T, key: keyof (typeof atlasData)["pos"][T], name: string) =>

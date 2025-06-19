@@ -1,7 +1,7 @@
 import { atlasData } from "../../data/atlas";
 import { getCurrentTemperature } from "../../util/arizona";
 import { getUsedMemory, steamGames, username } from "../../util/system";
-import { atlasJoker, debounce, debounceOwned, findJoker, hook, prefixedJoker, scheduleEvent } from "../../util/utils";
+import { animateJoker, atlasJoker, debounce, debounceOwned, findJoker, hook, prefixedJoker, scheduleEvent } from "../../util/utils";
 
 enum JokerRarity {
 	COMMON = 1,
@@ -338,9 +338,9 @@ export const initJokers = () => {
 				return { mult: 4 * mult ** 2 - 3 * mult + 1 - mult };
 			}
 		},
-		draw(card, layer) {
-			//card.VT.r = love.timer.getTime();
-		},
+		update(card) {
+			animateJoker(card, atlasData.anim.jokers.main.revolvingjoker, 40)
+		}
 	});
 	SMODS.Joker({
 		key: "maxwell",
@@ -349,7 +349,9 @@ export const initJokers = () => {
 		rarity: JokerRarity.RARE,
 		pixel_size: { w: 71, h: 50 },
 		cost: 3,
-		calculate(card, context) {},
+		calculate(card, context) {
+			if (context.joker_main) return { xmult: 2 }
+		},
 	});
 	SMODS.Joker({
 		key: "ooiiaa",
@@ -358,12 +360,12 @@ export const initJokers = () => {
 		rarity: JokerRarity.RARE,
 		pixel_size: { w: 71, h: 75 },
 		cost: 3,
-		calculate(card, context) {},
+		calculate(card, context) {
+			if (context.joker_main) return { xchips: 2 }
+		},
 		update(card) {
 			const frames = atlasData.anim.jokers.main.ooiiaa.slice(1);
-			if (G.CONTROLLER.hovering.target === card) {
-				card.children.center.set_sprite_pos(frames[Math.floor(love.timer.getTime() * 25 % frames.length)]);
-			}
+			if (G.CONTROLLER.hovering.target === card) animateJoker(card, frames, 40)
 			else card.children.center.set_sprite_pos(atlasData.anim.jokers.main.ooiiaa[0]);
 		}
 	});

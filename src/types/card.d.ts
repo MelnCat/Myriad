@@ -165,7 +165,7 @@ declare interface Card<E = unknown, C = unknown> extends Sprite {
 	set_sprites(_center: any, _front: any): void;
 	set_ability(center: any, initial?: boolean, delay_sprites?: boolean): void;
 	set_cost(): void;
-	set_edition(edition: any, immediate?: boolean, silent?: boolean): void;
+	set_edition(edition: string | null, immediate?: boolean, silent?: boolean): void;
 	set_seal(_seal: any, silent?: boolean, immediate?: boolean): void;
 	get_seal(bypass_debuff?: boolean): any;
 	set_eternal(_eternal: boolean): void;

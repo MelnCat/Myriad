@@ -57,12 +57,12 @@ export const initChemicals = () => {
 				set: "Chemical",
 				draw(card, layer) {
 					const hovering = G.CONTROLLER.hovering.target?.config?.center?.key;
-					if (!hovering || !hovering.startsWith("c_myd_")) return;
+					if (!hovering?.startsWith("c_myd_")) return;
 					if (hovering === this.key) return;
 					if (chemicalReactions.filter(x => x.reactants.includes(unprefix(this.key))).some(x => x.reactants.includes(unprefix(hovering)))) {
 						card.children.center.draw_shader("myd_outline", undefined, card.ARGS.send_to_shader);
-						if (!card._MYD) card._MYD = {};
-						if (!card._MYD.shake_chemical) card._MYD.shake_chemical = debounce(() => card.juice_up(0.1, 0.1), 400);
+						card._MYD ??= {};
+						card._MYD.shake_chemical ??= debounce(() => card.juice_up(0.1, 0.1), 400);
 						card._MYD.shake_chemical();
 					}
 				},

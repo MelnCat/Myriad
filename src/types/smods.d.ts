@@ -94,8 +94,8 @@ declare interface Globals {
 			config: {
 				blind: {
 					key: string;
-				}
-			}
+				};
+			};
 		};
 		probabilities: {
 			normal: number;
@@ -425,14 +425,14 @@ interface BlindOptions {
 	boss?: { min: number; showdown?: boolean };
 	boss_colour?: RGBA;
 	debuff?: {
-		hand?: Record<string, boolean>
+		hand?: Record<string, boolean>;
 		h_size_ge?: number;
 		h_size_le?: number;
 		suit?: Suits;
 		value?: string;
 		nominal?: number;
 		is_face?: boolean;
-	}
+	};
 	ignore_showdown_check?: boolean;
 	vars?: unknown;
 	set_blind?(): void;
@@ -443,12 +443,37 @@ interface BlindOptions {
 	recalc_debuff?(card: Card, from_blind: boolean): boolean;
 	debuff_hand?(cards: Card[], hand: unknown, handname: string, check: unknown): boolean;
 	stay_flipped?(area: CardArea, card: Card): boolean;
-	modify_hand?(cards: Card[], poker_hands: unknown, text: string, mult: number, hand_chips: number): LuaMultiReturn<[mult: number, hand_chips: number, changed: boolean]>
+	modify_hand?(cards: Card[], poker_hands: unknown, text: string, mult: number, hand_chips: number): LuaMultiReturn<[mult: number, hand_chips: number, changed: boolean]>;
 	get_loc_debuff_text?(): string;
-	loc_vars?(): { vars?: (string | number | undefined)[], key?: string };
-	collection_loc_vars?(): { vars?: (string | number | undefined)[], key?: string };
+	loc_vars?(): { vars?: (string | number | undefined)[]; key?: string };
+	collection_loc_vars?(): { vars?: (string | number | undefined)[]; key?: string };
 	in_pool?(): boolean;
-
+}
+interface EditionOptions<C> {
+	key: string;
+	shader: string | false;
+	loc_txt?: LocalizedText;
+	// Atlas and pos affects collection joker pos
+	atlas?: string;
+	pos?: { x: number; y: number };
+	config: C & { p_dollars?: number; card_limit?: number };
+	pools?: Record<ObjectType, boolean>;
+	in_shop?: boolean;
+	weight?: number;
+	extra_cost?: number;
+	apply_to_float?: boolean;
+	badge_colour?: RGBA;
+	sound?: { sound: string; per: number; vol: number };
+	disable_shadow?: boolean;
+	disable_base_shader?: boolean;
+	loc_vars?(info_queue: unknown, card: Card & { edition: C }): { vars?: (string | number | undefined)[]; key?: string; set?: unknown };
+	get_weight?(): number;
+	on_apply?(card: Card): void;
+	on_remove?(card: Card): void;
+	on_load?(card: Card): void;
+	draw?(card: Card, layer: string): void;
+	in_pool?(args: { source: string }): void;
+	calculate?(card: Card & { edition: C }, context: CalculateContext): CalculateReturn | void;
 }
 type Enhancement = "m_bonus" | "m_mult" | "m_wild" | "m_glass" | "m_steel" | "m_stone" | "m_gold" | "m_lucky";
 
@@ -462,6 +487,7 @@ declare const SMODS: {
 	Shader: (this: void, opts: ShaderOptions) => void;
 	Rarity: (this: void, opts: RarityOptions) => void;
 	Blind: (this: void, opts: BlindOptions) => void;
+	Edition: <C>(this: void, opts: EditionOptions<C>) => void;
 	//
 	create_card: <T extends ObjectType>(this: void, opts: CreateCardOptions<T>) => Card;
 	add_card: <T extends ObjectType>(this: void, opts: CreateCardOptions<T>) => void;

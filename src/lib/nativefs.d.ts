@@ -39,19 +39,19 @@ interface FileInfo {
 /** @noSelf */
 interface NativeFS {
 	newFile(name: string): File;
-	newFileData(filepath: string): [FileData | null, string];
+	newFileData(filepath: string): LuaMultiReturn<[FileData | null, string]>;
 	mount(archive: string, mountPoint: string, appendToPath: boolean): boolean;
 	unmount(archive: string): boolean;
-	read(containerOrName: "string" | "data" | string, nameOrSize?: string | number | "all", sizeOrNil?: number | "all"): [string | FileData | null, number | string];
-	write(name: string, data: string | FileData, size?: number | "all"): [boolean, string];
-	append(name: string, data: string | FileData, size?: number | "all"): [boolean, string];
-	lines(name: string): (() => string | undefined) | [null, string];
-	load(name: string): [(() => any) | null, string];
+	read(containerOrName: "string" | "data" | string, nameOrSize?: string | number | "all", sizeOrNil?: number | "all"): LuaMultiReturn<[string | FileData | null, number | string]>;
+	write(name: string, data: string | FileData, size?: number | "all"): LuaMultiReturn<[boolean, string]>;
+	append(name: string, data: string | FileData, size?: number | "all"): LuaMultiReturn<[boolean, string]>;
+	lines(name: string): (() => string | undefined) | LuaMultiReturn<[null, string]>;
+	load(name: string): LuaMultiReturn<[(() => any) | null, string]>;
 	getWorkingDirectory(): string | null;
-	setWorkingDirectory(path: string): [boolean, string];
+	setWorkingDirectory(path: string): LuaMultiReturn<[boolean, string]>;
 	getDriveList(): string[];
-	createDirectory(path: string): [boolean, string];
-	remove(name: string): [boolean, string];
+	createDirectory(path: string): LuaMultiReturn<[boolean, string]>;
+	remove(name: string): LuaMultiReturn<[boolean, string]>;
 	getDirectoryItems(dir: string): string[];
 	getDirectoryItemsInfo(path: string, filtertype?: string): FileInfo[];
 	getInfo(path: string, filtertype?: string): FileInfo | null;

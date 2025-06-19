@@ -98,7 +98,7 @@ for (const file of luaFiles) {
 	const replaced = (() => {
 		let str = content;
 		str = str.replace(/require\("(.+?)"\)/g, (_, a) =>
-			["ffi", "SMODS.https"].includes(a) ? _ : `MYRIAD_INTERNAL_IF_YOU_USE_THIS_YOU_ARE_FIRED.require("${a.replaceAll(".", "/")}.lua")`
+			["ffi", "SMODS.https", "lovely"].includes(a) ? _ : `MYRIAD_INTERNAL_IF_YOU_USE_THIS_YOU_ARE_FIRED.require("${a.replaceAll(".", "/")}.lua")`
 		);
 		if (file.endsWith("atlas.lua"))
 			str = str.replace(`"<data>"`, JSON.stringify(JSON.stringify(atlases))).replace(`"<animdata>"`, JSON.stringify(JSON.stringify(animatedAtlases)));
