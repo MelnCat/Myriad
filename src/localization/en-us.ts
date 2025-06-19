@@ -59,11 +59,11 @@ export = localizationEntry({
 			},
 			revolvingjoker: {
 				name: "Revolving Joker",
-				text: ["Sets Mult to {X:mult,C:white}4M^2 - 3M + 1{}", "{C:inactive}Mult, but at what cost?"],
+				text: ["Sets Mult to {X:mult,C:white}#1#M^2 - #2#M + #3#{}", "{C:inactive}Mult, but at what cost?"],
 			},
 			maxwell: {
 				name: "Maxwell",
-				text: ["cat"],
+				text: ["{X:mult,C:white}X#1#{} Mult", "{C:green}#2# in #3#{} chance to {S:1.1,C:red,E:2}shut down{}", "your computer instead"],
 			},
 			ooiiaa: {
 				name: "OO II AA",
@@ -113,7 +113,7 @@ export = localizationEntry({
 			},
 			nitrogen: {
 				name: "Nitrogen",
-				text: ["Todo whatever this is", "{C:attention}supposed{} to do"],
+				text: ["{X:attention,C:white}X2{} choices in currently", "opened {C:attention}Booster Pack{}"],
 			},
 			ammonia: {
 				name: "Ammonia",

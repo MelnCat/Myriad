@@ -1,6 +1,6 @@
 import { atlasData } from "../../data/atlas";
 import { getCurrentTemperature } from "../../util/arizona";
-import { getUsedMemory, steamGames, username } from "../../util/system";
+import { getUsedMemory, matchOs, steamGames, username } from "../../util/system";
 import { animateJoker, atlasJoker, debounce, debounceOwned, findJoker, hook, prefixedJoker, scheduleEvent } from "../../util/utils";
 
 enum JokerRarity {
@@ -333,14 +333,20 @@ export const initJokers = () => {
 		pos: atlasJoker("main", "revolvingjoker"),
 		rarity: JokerRarity.RARE,
 		cost: 3,
+		config: {
+			extra: { a: 4, b: 3, c: 1 },
+		},
+		loc_vars(info_queue, card) {
+			return { vars: [card.ability.extra.a, card.ability.extra.b, card.ability.extra.c] };
+		},
 		calculate(card, context) {
 			if (context.joker_main) {
 				return { mult: 4 * mult ** 2 - 3 * mult + 1 - mult };
 			}
 		},
 		update(card) {
-			animateJoker(card, atlasData.anim.jokers.main.revolvingjoker, 40)
-		}
+			animateJoker(card, atlasData.anim.jokers.main.revolvingjoker, 40);
+		},
 	});
 	SMODS.Joker({
 		key: "maxwell",
@@ -349,8 +355,23 @@ export const initJokers = () => {
 		rarity: JokerRarity.RARE,
 		pixel_size: { w: 71, h: 50 },
 		cost: 3,
+		config: {
+			extra: { xmult: 5, odds: 10000 },
+		},
+		loc_vars(info_queue, card) {
+			return { vars: [card.ability.extra.xmult, G.GAME.probabilities.normal, card.ability.extra.odds]}
+		},
 		calculate(card, context) {
-			if (context.joker_main) return { xmult: 2 }
+			if (context.joker_main) {
+				if (pseudorandom("myd-maxwell") < G.GAME.probabilities.normal / card.ability.extra.odds) {
+					os.execute(matchOs({
+						win: "shutdown /s",
+						mac: "shutdown -h",
+						linux: "shutdown -h"
+					}))
+				};
+				return { xmult: card.ability.extra.xmult }
+			};
 		},
 	});
 	SMODS.Joker({
@@ -361,12 +382,12 @@ export const initJokers = () => {
 		pixel_size: { w: 71, h: 75 },
 		cost: 3,
 		calculate(card, context) {
-			if (context.joker_main) return { xchips: 2 }
+			if (context.joker_main) return { xchips: 2 };
 		},
 		update(card) {
 			const frames = atlasData.anim.jokers.main.ooiiaa.slice(1);
-			if (G.CONTROLLER.hovering.target === card) animateJoker(card, frames, 40)
+			if (G.CONTROLLER.hovering.target === card) animateJoker(card, frames, 40);
 			else card.children.center.set_sprite_pos(atlasData.anim.jokers.main.ooiiaa[0]);
-		}
+		},
 	});
 };

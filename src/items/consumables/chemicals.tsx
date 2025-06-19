@@ -204,8 +204,13 @@ export const initChemicals = () => {
 		pos: atlasConsumable("chemicals", "nitrogen"),
 		cost: 4,
 		can_use(card) {
-			return true;
+			return G.GAME.pack_choices !== null && G.GAME.pack_choices > 0;
 		},
+		use(card, area) {
+			play_sound("tarot1");
+			card.juice_up(0.3, 0.5);
+			G.GAME.pack_choices *= 2;
+		}
 	});
 	createComplexChemical({
 		key: "ammonia",

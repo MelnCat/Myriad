@@ -218,3 +218,4 @@ export const localizationEntry = (entry: {
 	misc: entry.misc,
 });
 export const unprefix = (key: string) => key.split("_").slice(2).join("_");
+export const hasCryptid = SMODS.find_mod("Cryptid").length;

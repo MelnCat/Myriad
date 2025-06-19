@@ -496,4 +496,13 @@ declare const SMODS: {
 	load_file(this: void, path: string): unknown;
 	change_base(this: void, card: Card, suit?: Suits, rank?: string): void;
 	modify_rank(this: void, card: Card, amount: number): LuaMultiReturn<[null, string] | [Card, null]>;
+	find_mod(this: void, modid: string): unknown[];
 };
+
+declare const inspect: (this: void, table: unknown) => string;
+declare const inspectDepth: (this: void, table: unknown) => string;
+declare const inspectFunction: (this: void, table: Function) => string;
+declare const serialize: (this: void, table: unknown, indent: unknown) => string;
+declare const tprint: (this: void, table: unknown, indent: unknown) => string;
+declare const round_number: (this: void, num: number, precision: number) => number;
+declare const format_ui_value: (this: void, value: unknown) => string;
